@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BidElevate — Provider Intelligence System</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#2e3f3a;min-height:100vh}
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#3e554f;flex-shrink:0;display:flex;flex-direction:column;padding:24px 0;position:fixed;height:100vh;overflow-y:auto}
+.main{flex:1;margin-left:220px}
+.sidebar-logo{padding:0 20px 24px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.sidebar-logo-text{font-size:1.1rem;color:#fff;font-weight:600}
+.sidebar-logo-sub{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;margin-top:3px}
+.nav{padding:16px 0}
+.nav-section{font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:14px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:rgba(255,255,255,0.65);cursor:pointer;transition:all 0.15s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:#fff}
+.header{background:#fff;border-bottom:1px solid rgba(62,85,79,0.1);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.header-title{font-size:1.15rem;font-weight:600;color:#2e3f3a}
+.header-sub{font-size:12px;color:#888;margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all 0.15s}
+.btn-primary{background:#3e554f;color:#fff}
+.btn-primary:hover{background:#2e3f3a}
+.btn-outline{background:none;border:1px solid rgba(62,85,79,0.3);color:#3e554f}
+.btn-outline:hover{background:rgba(62,85,79,0.06)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-green{background:#eef2f1;color:#3e554f;border:1px solid rgba(62,85,79,0.2)}
+.content{padding:24px 28px}
+.screen{display:none}
+.screen.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:10px;padding:20px;border:1px solid rgba(62,85,79,0.08)}
+.stat-label{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:8px}
+.stat-value{font-size:2rem;color:#3e554f;font-weight:600}
+.stat-sub{font-size:11px;color:#888;margin-top:4px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:#fff;border-radius:10px;padding:20px;border:1px solid rgba(62,85,79,0.08);margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;color:#2e3f3a;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.table{width:100%;border-collapse:collapse}
+.table th{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;border-bottom:1px solid rgba(62,85,79,0.08);background:#fafafa}
+.table td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(62,85,79,0.05);vertical-align:middle}
+.table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-green{background:#eef2f1;color:#3e554f}
+.badge-amber{background:#fff8e6;color:#b07800}
+.badge-red{background:#fee2e2;color:#c0392b}
+.badge-blue{background:#e8f0fe;color:#1a56db}
+.badge-grey{background:#f0f0f0;color:#666}
+.badge-purple{background:#f3e8ff;color:#6b21a8}
+.tag{display:inline-block;background:#eef2f1;color:#3e554f;border-radius:4px;padding:2px 7px;font-size:11px;margin:2px}
+.search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.search-input{flex:1;min-width:180px;padding:9px 14px;border:1px solid rgba(62,85,79,0.2);border-radius:6px;font-size:13px;font-family:inherit;outline:none}
+.search-input:focus{border-color:#3e554f}
+.form-select{padding:9px 14px;border:1px solid rgba(62,85,79,0.2);border-radius:6px;font-size:13px;font-family:inherit;color:#2e3f3a;background:#fff;outline:none}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3e554f;cursor:pointer;margin-bottom:16px;background:none;border:none;font-family:inherit;padding:0}
+.back-btn:hover{text-decoration:underline}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:1.05rem;font-weight:600;color:#2e3f3a;margin-bottom:20px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;display:block}
+.form-input{width:100%;padding:9px 12px;border:1px solid rgba(62,85,79,0.2);border-radius:6px;font-size:13px;font-family:inherit;outline:none;color:#2e3f3a}
+.form-input:focus{border-color:#3e554f}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid rgba(62,85,79,0.1)}
+.note-item{background:#f7f5f0;border-radius:8px;padding:12px 14px;margin-bottom:10px;border-left:3px solid #3e554f}
+.note-date{font-size:10px;color:#888;margin-bottom:4px}
+.note-text{font-size:12px;color:#444;line-height:1.6}
+.flag-banner{background:#fff8e6;border:1px solid #f0c040;border-radius:8px;padding:10px 14px;font-size:12px;color:#8a6000;margin-bottom:14px}
+.flag-info{background:#eef2f1;border:1px solid rgba(62,85,79,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#3e554f;margin-bottom:14px}
+.flag-success{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;margin-bottom:14px}
+.loading{text-align:center;padding:30px;color:#888;font-size:13px}
+.opp-row{background:#fff;border-radius:10px;padding:16px 20px;border:1px solid rgba(62,85,79,0.08);margin-bottom:10px}
+.match-card{background:#eef2f1;border-radius:8px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.match-card.weak{background:#f7f5f0;opacity:0.75}
+.profile-avatar{width:44px;height:44px;border-radius:50%;background:#3e554f;color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast{position:fixed;bottom:24px;right:24px;background:#3e554f;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:200;display:none}
+.inline-select{font-size:11px;padding:3px 8px;border:1px solid rgba(62,85,79,0.2);border-radius:4px;font-family:inherit;background:#fff;color:#2e3f3a;cursor:pointer}
+
+/* ===== MOBILE STYLES ===== */
+.hamburger{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0;line-height:1}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:49}
+.sidebar-overlay.open{display:block}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform 0.25s ease;z-index:50}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hamburger{display:block}
+  .header{padding:12px 16px;gap:8px}
+  .header-title{font-size:1rem}
+  .header-actions{display:flex;gap:6px;align-items:center}
+  .content{padding:16px}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .stat-card{padding:14px}
+  .stat-value{font-size:1.5rem}
+  .grid-2{grid-template-columns:1fr;gap:12px}
+  .card{padding:16px;margin-bottom:12px}
+
+  /* Tables become cards on mobile */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .mobile-card-list .table thead{display:none}
+  .mobile-card-list .table tbody tr{display:block;background:#fff;border-radius:8px;margin-bottom:10px;border:1px solid rgba(62,85,79,0.1);padding:12px}
+  .mobile-card-list .table tbody td{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border:none;font-size:12px}
+  .mobile-card-list .table tbody td:first-child{font-weight:600;font-size:13px;border-bottom:1px solid rgba(62,85,79,0.08);padding-bottom:8px;margin-bottom:4px;display:block}
+  .mobile-card-list .table tbody td:before{content:attr(data-label);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#888;margin-right:8px;flex-shrink:0}
+
+  /* Opportunity rows on mobile */
+  .opp-row{padding:14px;flex-direction:column;gap:10px}
+  .match-card{flex-direction:column;align-items:flex-start;gap:8px}
+
+  /* Forms on mobile */
+  .form-row{grid-template-columns:1fr}
+  .modal{padding:20px;width:95vw;margin:10px}
+  .modal-actions{flex-direction:column}
+  .modal-actions .btn{width:100%;justify-content:center}
+
+  /* Search bar */
+  .search-bar{flex-direction:column}
+  .search-input{min-width:unset}
+
+  /* Profile */
+  .profile-flex{flex-direction:column}
+  .profile-stats{text-align:left!important;margin-top:12px}
+
+  /* Buttons */
+  .btn-sm{padding:6px 12px}
+  .header-btn-group{display:flex;flex-wrap:wrap;gap:6px}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">✓ Saved</div>
+
+<!-- ADD PROVIDER MODAL -->
+<div class="modal-overlay" id="modal-provider">
+  <div class="modal">
+    <div class="modal-title">Add New Provider</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Organisation Name *</label><input class="form-input" id="p-name" placeholder="e.g. Sunrise Care Ltd"></div>
+      <div class="form-group"><label class="form-label">Contact Name</label><input class="form-input" id="p-contact" placeholder="e.g. James Smith"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="p-email" type="email"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="p-phone"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Services (comma separated)</label><input class="form-input" id="p-services" placeholder="Home Care, Supported Living, Floating Support"></div>
+    <div class="form-group"><label class="form-label">Regions / Areas (comma separated)</label><input class="form-input" id="p-regions" placeholder="Birmingham, West Midlands, Peterborough"><div style="font-size:11px;color:#888;margin-top:3px">Towns, counties and NHS regions all work — be as specific as needed</div></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">CQC Rating</label>
+        <select class="form-input" id="p-cqc"><option>Good</option><option>Outstanding</option><option>Requires Improvement</option><option>Inadequate</option><option selected>Unrated — Not yet inspected</option><option>N/A — Not applicable</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Retainer?</label>
+        <select class="form-input" id="p-retainer"><option value="false">No</option><option value="true">Yes</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Discovery Call Notes</label><textarea class="form-input" id="p-notes" rows="3" placeholder="Key notes..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-provider')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProvider()">Save Provider</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD OPPORTUNITY MODAL -->
+<div class="modal-overlay" id="modal-opportunity">
+  <div class="modal">
+    <div class="modal-title">Add New Opportunity</div>
+    <div class="form-group"><label class="form-label">Opportunity Name *</label><input class="form-input" id="o-name" placeholder="e.g. Supported Living Framework Lot 1 & 2"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Contracting Authority</label><input class="form-input" id="o-authority"></div>
+      <div class="form-group"><label class="form-label">Reference</label><input class="form-input" id="o-ref"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-input" id="o-type"><option>DPS</option><option>Framework</option><option>Call-Off</option><option>Mini Competition</option><option>Direct Award</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Deadline</label><input class="form-input" id="o-deadline" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Service Types (comma separated)</label><input class="form-input" id="o-services" placeholder="Home Care, Supported Living"></div>
+      <div class="form-group"><label class="form-label">Region / Area</label><input class="form-input" id="o-region" placeholder="e.g. Birmingham, West Midlands"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">CQC Required</label>
+        <select class="form-input" id="o-cqc"><option>Yes — rated providers only</option><option selected>Yes — registered but unrated acceptable</option><option>No — CQC not required</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Value to BidElevate</label><input class="form-input" id="o-value" placeholder="e.g. £1,200"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="o-notes" rows="2"></textarea></div>
+    <div class="form-group"><label class="form-label">Source Link</label><input class="form-input" id="o-link" placeholder="https://..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-opportunity')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOpportunity()">Save & Match Providers</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD NOTE MODAL -->
+<div class="modal-overlay" id="modal-note">
+  <div class="modal">
+    <div class="modal-title">Add Meeting Note</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="n-date" type="date"></div>
+      <div class="form-group"><label class="form-label">Call Type</label>
+        <select class="form-input" id="n-type"><option>Discovery Call</option><option>Check-in Call</option><option>Draft Review</option><option>Kick-off Call</option><option>Final Review</option><option>Other</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes *</label><textarea class="form-input" id="n-notes" rows="5" placeholder="Key points from the call..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-note')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PAST BID MODAL -->
+<div class="modal-overlay" id="modal-past-bid">
+  <div class="modal">
+    <div class="modal-title">Log Past Bid / Opportunity</div>
+    <div class="form-group"><label class="form-label">Opportunity Name *</label><input class="form-input" id="pb-name" placeholder="e.g. Dudley MBC Supported Living Framework"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Contracting Authority</label><input class="form-input" id="pb-authority"></div>
+      <div class="form-group"><label class="form-label">Opportunity Type *</label>
+        <select class="form-input" id="pb-type"><option>DPS</option><option>Framework</option><option>Call-Off</option><option>Mini Competition</option><option>Direct Award</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Submission Deadline</label><input class="form-input" id="pb-deadline" type="date"></div>
+      <div class="form-group"><label class="form-label">Date Sent to Client</label><input class="form-input" id="pb-sent" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Client Response</label>
+        <select class="form-input" id="pb-response"><option>Accepted</option><option>Declined</option><option>Awaiting</option><option>No Response</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Bid Outcome</label>
+        <select class="form-input" id="pb-outcome"><option>Pending</option><option>Won</option><option>Lost</option><option>Withdrawn</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Value to BidElevate</label><input class="form-input" id="pb-value" placeholder="e.g. £1,200"></div>
+      <div class="form-group"><label class="form-label">Portal Used</label><input class="form-input" id="pb-portal" placeholder="e.g. Procontract"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="pb-notes" rows="2" placeholder="Any notes about this bid..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-past-bid')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePastBid()">Save Bid</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SEND LOG MODAL -->
+<div class="modal-overlay" id="modal-edit-send">
+  <div class="modal">
+    <div class="modal-title">Edit Bid Record</div>
+    <input type="hidden" id="es-id">
+    <div class="form-group"><label class="form-label">Opportunity Name</label><input class="form-input" id="es-name" readonly style="background:#f5f5f3"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Client Response</label>
+        <select class="form-input" id="es-response"><option>Awaiting</option><option>Accepted</option><option>Declined</option><option>No Response</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Bid Outcome</label>
+        <select class="form-input" id="es-outcome"><option>Pending</option><option>Won</option><option>Lost</option><option>Withdrawn</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Value to BidElevate</label><input class="form-input" id="es-value" placeholder="e.g. £1,200"></div>
+      <div class="form-group"><label class="form-label">Response Date</label><input class="form-input" id="es-date" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="es-notes" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-send')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateSendLog()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOT SENDING MODAL -->
+<div class="modal-overlay" id="modal-not-sending">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">Not sending to <span id="ns-provider-name"></span></div>
+    <div class="form-group">
+      <label class="form-label">Reason (optional)</label>
+      <input class="form-input" id="ns-reason" placeholder="e.g. Budget too small, wrong lot, client not ready...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-not-sending')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmNotSending()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PORTAL MODAL -->
+<div class="modal-overlay" id="modal-portal">
+  <div class="modal">
+    <div class="modal-title">🔐 Add Portal Login</div>
+    <div class="form-group"><label class="form-label">Portal Name</label>
+      <select class="form-input" id="portal-name-select" onchange="portalNameChange(this)">
+        <option>Procontract</option>
+        <option>In-tend</option>
+        <option>Chest</option>
+        <option>Find a Tender</option>
+        <option>Bravo</option>
+        <option>Delta eSourcing</option>
+        <option>ProActis</option>
+        <option>YPO</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group" id="portal-custom-group" style="display:none">
+      <label class="form-label">Portal Name (custom)</label>
+      <input class="form-input" id="portal-name-custom" placeholder="e.g. NHS SBS Portal">
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Username / Email</label><input class="form-input" id="portal-username" placeholder="e.g. info@provider.co.uk"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="portal-password" placeholder="Password"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Portal URL</label><input class="form-input" id="portal-url" placeholder="https://..."></div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="portal-notes" placeholder="e.g. Registered for Lot 1 only"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-portal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePortal()">Save Portal</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROVIDER MODAL -->
+<div class="modal-overlay" id="modal-edit-provider">
+  <div class="modal">
+    <div class="modal-title">Edit Provider</div>
+    <input type="hidden" id="ep-id">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Organisation Name</label><input class="form-input" id="ep-name"></div>
+      <div class="form-group"><label class="form-label">Contact Name</label><input class="form-input" id="ep-contact"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="ep-email" type="email"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="ep-phone"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Services (comma separated)</label><input class="form-input" id="ep-services"></div>
+    <div class="form-group"><label class="form-label">Regions (comma separated)</label><input class="form-input" id="ep-regions"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">CQC Rating</label>
+        <select class="form-input" id="ep-cqc"><option>Good</option><option>Outstanding</option><option>Requires Improvement</option><option>Inadequate</option><option>Unrated — Not yet inspected</option><option>N/A — Not applicable</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Retainer?</label>
+        <select class="form-input" id="ep-retainer"><option value="false">No</option><option value="true">Yes</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">🎨 Botanical Print Sent?</label>
+        <select class="form-input" id="ep-print"><option value="false">No — pending win</option><option value="true">Yes — sent!</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Print Date</label><input class="form-input" id="ep-print-date" type="date"></div>
+    </div>
+    <div class="modal-actions" style="justify-content:space-between">
+      <button class="btn btn-sm" style="background:#fee2e2;color:#c0392b;border:none" onclick="deleteProvider()">&#128465; Delete Provider</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="closeModal('modal-edit-provider')">Cancel</button>
+        <button class="btn btn-primary" onclick="updateProvider()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="app">
+<div class="sidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div class="sidebar-logo-text">BidElevate</div>
+      <div class="sidebar-logo-sub">Provider Intelligence</div>
+    </div>
+    <button class="hamburger" onclick="closeSidebar()" style="color:rgba(255,255,255,0.6);font-size:18px">✕</button>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="showScreen('dashboard')">📊 Dashboard</div>
+    <div class="nav-item" onclick="showScreen('providers')">🏢 Providers</div>
+    <div class="nav-item" onclick="showScreen('opportunities')">🎯 Opportunities</div>
+    <div class="nav-section">Tracking</div>
+    <div class="nav-item" onclick="showScreen('pipeline')">📋 Bid Pipeline</div>
+    <div class="nav-item" onclick="showScreen('revenue')">💷 Wins & Revenue</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div class="screen active" id="screen-dashboard">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
+      <div><div class="header-title">Good morning, Jade 👋</div><div class="header-sub" id="dash-date"></div></div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('modal-opportunity')">+ Add</button>
+  </div>
+  <div class="content">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total Providers</div><div class="stat-value" id="stat-providers">—</div></div>
+      <div class="stat-card"><div class="stat-label">Retainer Clients</div><div class="stat-value" id="stat-retainers">—</div></div>
+      <div class="stat-card"><div class="stat-label">Active Opportunities</div><div class="stat-value" id="stat-opps">—</div></div>
+      <div class="stat-card"><div class="stat-label">Awaiting Response</div><div class="stat-value" id="stat-awaiting">—</div></div>
+    </div>
+    <div class="card"><div class="card-title">🎨 Botanical Print Tracker</div><div id="print-reminders"><div class="loading">Loading...</div></div></div>
+    <div class="card"><div class="card-title">Your Providers</div><div id="dash-providers"><div class="loading">Loading...</div></div></div>
+  </div>
+</div>
+
+<!-- PROVIDERS -->
+<div class="screen" id="screen-providers">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
+      <div><div class="header-title">Providers</div><div class="header-sub" id="providers-count"></div></div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('modal-provider')">+ Add</button>
+  </div>
+  <div class="content">
+    <div class="search-bar">
+      <input class="search-input" id="provider-search" placeholder="Search name, contact or email..." oninput="filterProviders()">
+      <select class="form-select" id="filter-retainer" onchange="filterProviders()">
+        <option value="">All clients</option><option value="true">Retainer only</option><option value="false">Non-retainer</option>
+      </select>
+    </div>
+    <div class="mobile-card-list" style="background:#fff;border-radius:10px;overflow:hidden;border:1px solid rgba(62,85,79,0.08)">
+      <table class="table">
+        <thead><tr><th>Provider</th><th>Services</th><th>Regions</th><th>CQC</th><th>Retainer</th><th>🎨 Print</th></tr></thead>
+        <tbody id="providers-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="screen-profile">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
+      <div><div class="header-title" id="profile-title">Provider</div><div class="header-sub" id="profile-sub"></div></div>
+    </div>
+    <div class="header-btn-group">
+      <button class="btn btn-outline btn-sm" onclick="openNoteModal()">+ Note</button>
+      <button class="btn btn-outline btn-sm" onclick="openPastBidModal()">+ Bid</button>
+      <button class="btn btn-primary btn-sm" onclick="openEditModal()">Edit</button>
+    </div>
+  </div>
+  <div class="content">
+    <button class="back-btn" onclick="showScreen('providers')">← Back to Providers</button>
+    <div id="profile-content"><div class="loading">Loading...</div></div>
+  </div>
+</div>
+
+<!-- OPPORTUNITIES -->
+<div class="screen" id="screen-opportunities">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
+      <div><div class="header-title">Opportunities</div><div class="header-sub" id="opps-count"></div></div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('modal-opportunity')">+ Add</button>
+  </div>
+  <div class="content">
+    <div id="opps-list"><div class="loading">Loading...</div></div>
+  </div>
+</div>
+
+<!-- PIPELINE -->
+<div class="screen" id="screen-pipeline">
+  <div class="header">
+    <div><div class="header-title">Bid Pipeline</div><div class="header-sub">All bids — click Edit to update response or outcome</div></div>
+  </div>
+  <div class="content">
+    <div class="search-bar">
+      <select class="form-select" id="filter-response" onchange="loadPipeline()">
+        <option value="">All responses</option><option value="Awaiting">Awaiting</option><option value="Accepted">Accepted</option><option value="Declined">Declined</option><option value="No Response">No Response</option>
+      </select>
+      <select class="form-select" id="filter-outcome" onchange="loadPipeline()">
+        <option value="">All outcomes</option><option value="Pending">Pending</option><option value="Won">Won 🎉</option><option value="Lost">Lost</option><option value="Withdrawn">Withdrawn</option>
+      </select>
+    </div>
+    <div class="mobile-card-list table-wrap" style="background:#fff;border-radius:10px;overflow:hidden;border:1px solid rgba(62,85,79,0.08)">
+      <table class="table">
+        <thead><tr><th>Opportunity</th><th>Authority</th><th>Provider</th><th>Type</th><th>Deadline</th><th>Value</th><th>Response</th><th>Outcome</th><th>Edit</th></tr></thead>
+        <tbody id="pipeline-tbody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- REVENUE / WINS -->
+<div class="screen" id="screen-revenue">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
+      <div><div class="header-title">Wins & Revenue</div><div class="header-sub">Performance tracker</div></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total Bids Sent</div><div class="stat-value" id="rev-sent">—</div></div>
+      <div class="stat-card"><div class="stat-label">Accepted by Clients</div><div class="stat-value" id="rev-accepted">—</div></div>
+      <div class="stat-card"><div class="stat-label">Won 🎉</div><div class="stat-value" id="rev-won">—</div></div>
+      <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value" id="rev-rate">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Performance by Provider</div>
+      <table class="table">
+        <thead><tr><th>Provider</th><th>Sent</th><th>Accepted</th><th>Declined</th><th>No Response</th><th>Won</th><th>Lost</th><th>Response Rate</th><th>Win Rate</th></tr></thead>
+        <tbody id="revenue-tbody"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+const SURL='https://oyagzfirgdlgmihssuyr.supabase.co';
+const SKEY='sb_publishable_sErw8WmyBQtjaD1XSiaw9w_1vRp7WYw';
+const {createClient}=supabase;
+const db=createClient(SURL,SKEY);
+
+let allProviders=[];
+let currentProviderId=null;
+let currentProviderData=null;
+
+// UTILS
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  var map={dashboard:0,providers:1,profile:1,opportunities:2,pipeline:3,revenue:4};
+  var items=document.querySelectorAll('.nav-item');
+  if(map[id]!==undefined)items[map[id]].classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='providers')loadProviders();
+  if(id==='dashboard')loadDashboard();
+  if(id==='opportunities')loadOpportunities();
+  if(id==='pipeline')loadPipeline();
+  if(id==='revenue')loadRevenue();
+}
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});});
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg||'✓ Saved';t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
+function cqcBadge(r){
+  if(!r||r==='N/A — Not applicable')return '<span class="badge badge-grey">N/A</span>';
+  if(r==='Good'||r==='Outstanding')return '<span class="badge badge-green">'+r+'</span>';
+  if(r.includes('Unrated'))return '<span class="badge badge-grey">Unrated</span>';
+  return '<span class="badge badge-amber">'+r+'</span>';
+}
+function initials(n){return n?n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase():'??'}
+function fmtDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+function respBadge(r){
+  var map={'Accepted':'badge-green','Declined':'badge-red','Awaiting':'badge-amber','No Response':'badge-grey','Won':'badge-green','Lost':'badge-red','Pending':'badge-amber','Withdrawn':'badge-grey'};
+  var emoji={'Won':' 🎉','Lost':' ✗'};
+  return '<span class="badge '+(map[r]||'badge-grey')+'">'+(r||'—')+(emoji[r]||'')+'</span>';
+}
+
+// MATCHING — core logic
+function matchProviders(opp, providers){
+  var oppServices=(opp.service_type||[]).map(s=>s.toLowerCase().trim());
+  var oppRegions=(opp.regions||[]).map(r=>r.toLowerCase().trim());
+  var cqcReq=opp.cqc_required||'';
+  var ratedOnly=cqcReq.includes('rated providers only');
+
+  return providers.map(p=>{
+    var pServices=(p.services||[]).map(s=>s.toLowerCase().trim());
+    var pRegions=(p.regions||[]).map(r=>r.toLowerCase().trim());
+
+    // Service match — at least one service overlaps
+    var serviceMatch=oppServices.some(os=>pServices.some(ps=>ps.includes(os)||os.includes(ps)));
+
+    // Region match — any word overlap between opp regions and provider regions
+    var regionMatch=oppRegions.some(or=>pRegions.some(pr=>{
+      var orWords=or.split(/\s+/);
+      var prWords=pr.split(/\s+/);
+      return orWords.some(w=>w.length>2&&pr.includes(w))||prWords.some(w=>w.length>2&&or.includes(w));
+    }));
+
+    // CQC match
+    var cqcOk=true;
+    if(ratedOnly&&p.cqc_applicable){
+      cqcOk=p.cqc_rating==='Good'||p.cqc_rating==='Outstanding';
+    }
+
+    var reasons=[];
+    if(serviceMatch)reasons.push('✓ Service match');else reasons.push('✗ Service mismatch');
+    if(regionMatch)reasons.push('✓ Region match');else reasons.push('✗ Region mismatch');
+    if(p.cqc_applicable&&ratedOnly){if(cqcOk)reasons.push('✓ CQC rated');else reasons.push('✗ CQC not rated');}
+    else if(!p.cqc_applicable)reasons.push('ℹ CQC N/A');
+    else reasons.push('✓ CQC ok');
+
+    return {provider:p,serviceMatch,regionMatch,cqcOk,strong:serviceMatch&&regionMatch&&cqcOk,reasons:reasons.join(' · ')};
+  }).sort((a,b)=>b.strong-a.strong);
+}
+
+// DASHBOARD
+async function loadDashboard(){
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var [{data:providers},{data:opps},{data:sends}]=await Promise.all([
+    db.from('providers').select('*'),
+    db.from('opportunities').select('*').eq('status','Active'),
+    db.from('send_log').select('*').eq('response','Awaiting')
+  ]);
+  allProviders=providers||[];
+  document.getElementById('stat-providers').textContent=allProviders.length;
+  document.getElementById('stat-retainers').textContent=allProviders.filter(p=>p.retainer).length;
+  document.getElementById('stat-opps').textContent=(opps||[]).length;
+  document.getElementById('stat-awaiting').textContent=(sends||[]).length;
+
+  var needPrint=allProviders.filter(p=>!p.botanical_print_sent);
+  var hasPrint=allProviders.filter(p=>p.botanical_print_sent);
+  document.getElementById('print-reminders').innerHTML=
+    (hasPrint.map(p=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(62,85,79,0.06)"><span style="font-size:13px">'+p.organisation_name+'</span><span class="badge badge-green">✓ Print sent '+fmtDate(p.botanical_print_date)+'</span></div>').join(''))+
+    (needPrint.map(p=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(62,85,79,0.06)"><span style="font-size:13px">'+p.organisation_name+'</span><span class="badge badge-grey">Pending first win</span></div>').join(''));
+
+  document.getElementById('dash-providers').innerHTML=allProviders.slice(0,6).map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(62,85,79,0.05);cursor:pointer" onclick="openProfile('${p.id}')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="profile-avatar" style="width:32px;height:32px;font-size:11px">${initials(p.organisation_name)}</div>
+        <div><div style="font-size:13px;font-weight:500">${p.organisation_name}</div><div style="font-size:11px;color:#888">${p.contact_name}</div></div>
+      </div>
+      ${p.retainer?'<span class="badge badge-green">Retainer</span>':'<span class="badge badge-grey">Non-retainer</span>'}
+    </div>`).join('');
+}
+
+// PROVIDERS LIST
+async function loadProviders(){
+  var {data}=await db.from('providers').select('*').order('organisation_name');
+  allProviders=data||[];
+  document.getElementById('providers-count').textContent=allProviders.length+' providers';
+  renderProviders(allProviders);
+}
+function renderProviders(list){
+  document.getElementById('providers-tbody').innerHTML=list.map(p=>`
+    <tr onclick="openProfile('${p.id}')">
+      <td><strong>${p.organisation_name}</strong><br><span style="font-size:11px;color:#888">${p.contact_name} · ${p.email||''}</span></td>
+      <td>${(p.services||[]).map(s=>'<span class="tag">'+s+'</span>').join('')}</td>
+      <td style="font-size:11px;color:#555">${(p.regions||[]).join(', ')}</td>
+      <td>${cqcBadge(p.cqc_rating)}</td>
+      <td>${p.retainer?'<span class="badge badge-green">Yes</span>':'<span class="badge badge-grey">No</span>'}</td>
+      <td>${p.botanical_print_sent?'<span class="badge badge-green">✓ Sent</span>':'<span class="badge badge-grey">Pending</span>'}</td>
+    </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:#888">No providers found</td></tr>';
+}
+function filterProviders(){
+  var q=document.getElementById('provider-search').value.toLowerCase();
+  var r=document.getElementById('filter-retainer').value;
+  renderProviders(allProviders.filter(p=>{
+    var m=!q||(p.organisation_name||'').toLowerCase().includes(q)||(p.contact_name||'').toLowerCase().includes(q)||(p.email||'').toLowerCase().includes(q);
+    var rm=!r||(r==='true'&&p.retainer)||(r==='false'&&!p.retainer);
+    return m&&rm;
+  }));
+}
+
+// PROFILE
+async function openProfile(id){
+  currentProviderId=id;
+  showScreen('profile');
+  document.getElementById('profile-content').innerHTML='<div class="loading">Loading...</div>';
+  var [{data:p},{data:notes},{data:sends}]=await Promise.all([
+    db.from('providers').select('*').eq('id',id).single(),
+    db.from('meeting_notes').select('*').eq('provider_id',id).order('note_date',{ascending:false}),
+    db.from('send_log').select('*,opportunities(name,opportunity_type,deadline)').eq('provider_id',id).order('sent_at',{ascending:false})
+  ]);
+  currentProviderData=p;
+  document.getElementById('profile-title').textContent=p.organisation_name;
+  document.getElementById('profile-sub').textContent=(p.contact_name||'')+(p.email?' · '+p.email:'');
+
+  var warns='';
+  if(p.cqc_applicable&&p.cqc_rating&&p.cqc_rating.includes('Unrated'))warns+='<div class="flag-banner">⚠️ Unrated CQC — cannot bid for tenders requiring rated providers</div>';
+  if(!p.cqc_applicable)warns+='<div class="flag-info">ℹ️ CQC registration not applicable for this provider</div>';
+  if(p.botanical_print_sent)warns+='<div class="flag-success">🎨 Botanical print sent on '+fmtDate(p.botanical_print_date)+'</div>';
+  else warns+='<div class="flag-banner">🎨 No botanical print yet — mark as sent in Edit Profile when a win is confirmed</div>';
+
+  var won=(sends||[]).filter(s=>s.outcome==='Won').length;
+  var notesHtml=(notes||[]).length?notes.map(n=>'<div class="note-item"><div class="note-date">'+fmtDate(n.note_date)+' — '+n.call_type+'</div><div class="note-text">'+n.notes+'</div></div>').join(''):'<div style="font-size:12px;color:#888;padding:8px 0">No notes yet.</div>';
+  var sendsHtml=(sends||[]).length?`<table class="table"><thead><tr><th>Opportunity</th><th>Sent</th><th>Response</th><th>Outcome</th><th></th></tr></thead><tbody>`+
+    sends.map(s=>`<tr>
+      <td>${s.opportunities?s.opportunities.name:'Unknown'}</td>
+      <td style="font-size:11px">${fmtDate(s.sent_at)}</td>
+      <td>${respBadge(s.response)}</td>
+      <td>${respBadge(s.outcome||'Pending')}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openEditSend('${s.id}','${(s.opportunities?s.opportunities.name:'').replace(/'/g,"\\'")}','${s.response||'Awaiting'}','${s.outcome||'Pending'}','${s.bid_value||''}','${s.notes||''}')">Edit</button><button class="btn btn-sm" style="background:#fee2e2;color:#c0392b;border:none;margin-left:4px" onclick="deleteSendLog('${s.id}')">&#128465;</button></td>
+    </tr>`).join('')+'</tbody></table>':'<div style="font-size:12px;color:#888;padding:8px 0">No opportunities logged yet. Use "+ Log Past Bid" to add history.</div>';
+
+  document.getElementById('profile-content').innerHTML=`
+    ${warns}
+    <div style="background:#fff;border-radius:10px;padding:20px;border:1px solid rgba(62,85,79,0.08);margin-bottom:16px">
+      <div style="display:flex;align-items:flex-start;gap:16px">
+        <div class="profile-avatar">${initials(p.organisation_name)}</div>
+        <div style="flex:1">
+          <div style="font-size:1.1rem;font-weight:600;color:#2e3f3a;margin-bottom:4px">${p.organisation_name}</div>
+          <div style="font-size:12px;color:#888;line-height:1.8">${p.contact_name||''} ${p.email?'· '+p.email:''} ${p.phone?'· '+p.phone:''}</div>
+          <div style="margin-top:6px">${(p.services||[]).map(s=>'<span class="tag">'+s+'</span>').join('')} ${cqcBadge(p.cqc_rating)} ${p.retainer?'<span class="badge badge-green" style="margin-left:4px">Retainer</span>':''}</div>
+          <div style="margin-top:6px;font-size:12px;color:#888"><strong>Regions:</strong> ${(p.regions||[]).join(', ')}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:11px;color:#888">Bids sent</div>
+          <div style="font-size:1.8rem;font-weight:600;color:#3e554f">${(sends||[]).length}</div>
+          <div style="font-size:11px;color:#888;margin-top:4px">Won: ${won} 🎉</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Portal Logins <button class="btn btn-outline btn-sm" onclick="openPortalModal()">+ Add Portal</button></div>
+      <div id="portals-list-${p.id}"><div style="font-size:12px;color:#888">Loading portals...</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Meeting Notes <button class="btn btn-outline btn-sm" onclick="openNoteModal()">+ Add</button></div>
+        ${notesHtml}
+      </div>
+      <div class="card">
+        <div class="card-title">Opportunity History <button class="btn btn-outline btn-sm" onclick="openPastBidModal()">+ Log Past Bid</button></div>
+        ${sendsHtml}
+      </div>
+    </div>`;
+}
+
+// SAVE PROVIDER
+async function saveProvider(){
+  var name=document.getElementById('p-name').value.trim();
+  if(!name){alert('Please enter an organisation name');return;}
+  var {error}=await db.from('providers').insert({
+    organisation_name:name,contact_name:document.getElementById('p-contact').value,
+    email:document.getElementById('p-email').value,phone:document.getElementById('p-phone').value,
+    services:document.getElementById('p-services').value.split(',').map(s=>s.trim()).filter(Boolean),
+    regions:document.getElementById('p-regions').value.split(',').map(s=>s.trim()).filter(Boolean),
+    cqc_rating:document.getElementById('p-cqc').value,
+    cqc_applicable:document.getElementById('p-cqc').value!=='N/A — Not applicable',
+    retainer:document.getElementById('p-retainer').value==='true',
+    notes:document.getElementById('p-notes').value
+  });
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-provider');toast('✓ Provider saved!');
+  ['p-name','p-contact','p-email','p-phone','p-services','p-regions','p-notes'].forEach(id=>document.getElementById(id).value='');
+  loadProviders();
+}
+
+// SAVE OPPORTUNITY
+async function saveOpportunity(){
+  var name=document.getElementById('o-name').value.trim();
+  if(!name){alert('Please enter a name');return;}
+  var {error}=await db.from('opportunities').insert({
+    name,authority:document.getElementById('o-authority').value,
+    reference:document.getElementById('o-ref').value,
+    opportunity_type:document.getElementById('o-type').value,
+    deadline:document.getElementById('o-deadline').value||null,
+    service_type:document.getElementById('o-services').value.split(',').map(s=>s.trim()).filter(Boolean),
+    regions:document.getElementById('o-region').value.split(',').map(s=>s.trim()).filter(Boolean),
+    cqc_required:document.getElementById('o-cqc').value,
+    estimated_value:document.getElementById('o-value').value,
+    notes:document.getElementById('o-notes').value,
+    source_link:document.getElementById('o-link').value,status:'Active'
+  });
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-opportunity');toast('✓ Opportunity saved!');
+  ['o-name','o-authority','o-ref','o-services','o-region','o-value','o-notes','o-link','o-deadline'].forEach(id=>document.getElementById(id).value='');
+  showScreen('opportunities');
+}
+
+// NOTES
+function openNoteModal(){document.getElementById('n-date').value=new Date().toISOString().split('T')[0];document.getElementById('n-notes').value='';openModal('modal-note');}
+async function saveNote(){
+  if(!currentProviderId)return;
+  var notes=document.getElementById('n-notes').value.trim();
+  if(!notes){alert('Please add notes');return;}
+  var {error}=await db.from('meeting_notes').insert({provider_id:currentProviderId,note_date:document.getElementById('n-date').value,call_type:document.getElementById('n-type').value,notes});
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-note');toast('✓ Note saved!');openProfile(currentProviderId);
+}
+
+// PAST BID
+function openPastBidModal(){document.getElementById('pb-sent').value=new Date().toISOString().split('T')[0];['pb-name','pb-authority','pb-value','pb-notes'].forEach(id=>document.getElementById(id).value='');openModal('modal-past-bid');}
+async function savePastBid(){
+  if(!currentProviderId)return;
+  var name=document.getElementById('pb-name').value.trim();
+  if(!name){alert('Please enter opportunity name');return;}
+  // Create a past opportunity record
+  var deadline=document.getElementById('pb-deadline').value;
+  var {data:opp,error:oe}=await db.from('opportunities').insert({
+    name,authority:document.getElementById('pb-authority').value,
+    opportunity_type:document.getElementById('pb-type').value,
+    estimated_value:document.getElementById('pb-value').value,
+    deadline:deadline||null,
+    status:'Closed',
+    is_past_bid:true
+  }).select().single();
+  if(oe){alert('Error: '+oe.message);return;}
+  // Log the send
+  var {error:se}=await db.from('send_log').insert({
+    provider_id:currentProviderId,opportunity_id:opp.id,
+    sent_at:document.getElementById('pb-sent').value,
+    response:document.getElementById('pb-response').value,
+    outcome:document.getElementById('pb-outcome').value,
+    bid_value:document.getElementById('pb-value').value,
+    notes:document.getElementById('pb-notes').value
+  });
+  if(se){alert('Error: '+se.message);return;}
+  closeModal('modal-past-bid');toast('✓ Past bid saved!');openProfile(currentProviderId);
+}
+
+// EDIT SEND LOG
+function openEditSend(id,name,response,outcome,value,notes){
+  document.getElementById('es-id').value=id;
+  document.getElementById('es-name').value=name;
+  document.getElementById('es-response').value=response||'Awaiting';
+  document.getElementById('es-outcome').value=outcome||'Pending';
+  document.getElementById('es-value').value=value||'';
+  document.getElementById('es-notes').value=notes||'';
+  document.getElementById('es-date').value=new Date().toISOString().split('T')[0];
+  openModal('modal-edit-send');
+}
+async function updateSendLog(){
+  var id=document.getElementById('es-id').value;
+  var {error}=await db.from('send_log').update({
+    response:document.getElementById('es-response').value,
+    outcome:document.getElementById('es-outcome').value,
+    bid_value:document.getElementById('es-value').value,
+    notes:document.getElementById('es-notes').value,
+    response_date:document.getElementById('es-date').value
+  }).eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-edit-send');toast('✓ Updated!');
+  if(currentProviderId){openProfile(currentProviderId);}else{loadPipeline();}
+}
+
+// EDIT PROVIDER
+function openEditModal(){
+  if(!currentProviderData)return;
+  var p=currentProviderData;
+  document.getElementById('ep-id').value=p.id;
+  document.getElementById('ep-name').value=p.organisation_name||'';
+  document.getElementById('ep-contact').value=p.contact_name||'';
+  document.getElementById('ep-email').value=p.email||'';
+  document.getElementById('ep-phone').value=p.phone||'';
+  document.getElementById('ep-services').value=(p.services||[]).join(', ');
+  document.getElementById('ep-regions').value=(p.regions||[]).join(', ');
+  document.getElementById('ep-cqc').value=p.cqc_rating||'Unrated — Not yet inspected';
+  document.getElementById('ep-retainer').value=p.retainer?'true':'false';
+  document.getElementById('ep-print').value=p.botanical_print_sent?'true':'false';
+  document.getElementById('ep-print-date').value=p.botanical_print_date||'';
+  openModal('modal-edit-provider');
+}
+async function updateProvider(){
+  var id=document.getElementById('ep-id').value;
+  var printSent=document.getElementById('ep-print').value==='true';
+  var {error}=await db.from('providers').update({
+    organisation_name:document.getElementById('ep-name').value,
+    contact_name:document.getElementById('ep-contact').value,
+    email:document.getElementById('ep-email').value,
+    phone:document.getElementById('ep-phone').value,
+    services:document.getElementById('ep-services').value.split(',').map(s=>s.trim()).filter(Boolean),
+    regions:document.getElementById('ep-regions').value.split(',').map(s=>s.trim()).filter(Boolean),
+    cqc_rating:document.getElementById('ep-cqc').value,
+    cqc_applicable:document.getElementById('ep-cqc').value!=='N/A — Not applicable',
+    retainer:document.getElementById('ep-retainer').value==='true',
+    botanical_print_sent:printSent,
+    botanical_print_date:printSent?(document.getElementById('ep-print-date').value||null):null
+  }).eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-edit-provider');toast('✓ Profile updated!');openProfile(id);
+}
+
+// OPPORTUNITIES with matching
+async function loadOpportunities(){
+  var [{data:opps},{data:providers},{data:allSends}]=await Promise.all([
+    db.from('opportunities').select('*').eq('is_past_bid',false).order('deadline',{ascending:true}),
+    db.from('providers').select('*'),
+    db.from('send_log').select('opportunity_id,provider_id,response')
+  ]);
+  allProviders=providers||[];
+  // Build a set of already-actioned provider+opportunity combos
+  var actioned={};
+  (allSends||[]).forEach(function(s){
+    var key=s.opportunity_id+'_'+s.provider_id;
+    actioned[key]=s.response;
+  });
+  document.getElementById('opps-count').textContent=(opps||[]).length+' opportunities';
+  if(!(opps||[]).length){document.getElementById('opps-list').innerHTML='<div style="text-align:center;padding:40px;color:#888">No opportunities yet. Click "+ Add Opportunity".</div>';return;}
+  document.getElementById('opps-list').innerHTML=opps.map(o=>{
+    var matches=matchProviders(o,allProviders);
+    // Filter out providers already sent to or marked not sending for this opportunity
+    var filtered=matches.filter(m=>!actioned[o.id+'_'+m.provider.id]);
+    var strong=filtered.filter(m=>m.strong);
+    var weak=filtered.filter(m=>!m.strong&&(m.serviceMatch||m.regionMatch));
+    // Count actioned
+    var actionedCount=(allSends||[]).filter(s=>s.opportunity_id===o.id).length;
+    return `<div class="opp-row">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:#2e3f3a;margin-bottom:4px">${o.name}</div>
+        <div style="font-size:12px;color:#888;margin-bottom:8px">${o.authority||''} ${o.reference?'('+o.reference+')':''} · <span class="badge badge-blue">${o.opportunity_type}</span> · ${(o.service_type||[]).join(', ')} · ${(o.regions||[]).join(', ')}</div>
+        ${o.notes?'<div style="font-size:11px;color:#888;margin-bottom:8px">'+o.notes+'</div>':''}
+        <div style="margin-top:8px">
+          ${actionedCount?'<div style="font-size:11px;color:#888;margin-bottom:6px">'+actionedCount+' provider(s) already actioned (sent or skipped)</div>':''}
+          <div style="font-size:11px;font-weight:600;color:#3e554f;margin-bottom:6px">✅ Strong matches (${strong.length}):</div>
+          ${strong.length?strong.map(m=>`<div class="match-card" style="flex-wrap:wrap"><div><div style="font-size:13px;font-weight:500">${m.provider.organisation_name}</div><div style="font-size:11px;color:#3e554f;margin-top:2px">${m.reasons}</div></div><div style="display:flex;gap:6px;margin-top:4px"><button class="btn btn-primary btn-sm" onclick="logSend('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}','${encodeURIComponent(o.name)}')">Log Send</button><button class="btn btn-sm" style="background:#f0f0f0;color:#555;border:none" onclick="logNotSendingEnc('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}')">Not sending</button></div></div>`).join(''):'<div style="font-size:12px;color:#888;padding:6px 0">No strong matches — check service types and regions</div>'}
+          ${weak.length?'<div style="font-size:11px;font-weight:600;color:#888;margin:8px 0 6px">Partial matches ('+weak.length+'):</div>'+weak.map(m=>`<div class="match-card weak" style="flex-wrap:wrap"><div><div style="font-size:13px;font-weight:500">${m.provider.organisation_name}</div><div style="font-size:11px;color:#888;margin-top:2px">${m.reasons}</div></div><div style="display:flex;gap:6px;margin-top:4px"><button class="btn btn-outline btn-sm" onclick="logSend('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}','${encodeURIComponent(o.name)}')">Send anyway</button><button class="btn btn-sm" style="background:#f0f0f0;color:#555;border:none" onclick="logNotSendingEnc('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}')">Not sending</button></div></div>`).join(''):''}
+        </div>
+      </div>
+      <div style="flex-shrink:0;text-align:right;margin-left:16px">
+        <div style="font-size:13px;font-weight:500;color:#c0392b">${o.deadline?fmtDate(o.deadline):'No deadline'}</div>
+        <div style="font-size:11px;color:#888;margin-top:4px">${o.estimated_value||''}</div>
+        ${o.source_link?'<a href="'+o.source_link+'" target="_blank" style="font-size:11px;color:#3e554f;display:block;margin-top:4px">View notice →</a>':''}
+        <button class="btn btn-sm" style="margin-top:8px;background:#fee2e2;color:#c0392b;border:none" onclick="deleteOpportunity('${o.id}','${o.name.replace(/'/g,"\\'")}')">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function logSend(oppId,providerId,providerName,oppName){
+  if(!confirm('Log that "'+oppName+'" was sent to '+providerName+'?'))return;
+  var {error}=await db.from('send_log').insert({opportunity_id:oppId,provider_id:providerId,sent_at:new Date().toISOString(),response:'Awaiting',outcome:'Pending'});
+  if(error){alert('Error: '+error.message);return;}
+  toast('✓ Logged as sent to '+providerName);loadOpportunities();
+}
+
+// PIPELINE
+async function loadPipeline(){
+  var rFilter=document.getElementById('filter-response').value;
+  var oFilter=document.getElementById('filter-outcome').value;
+  var q=db.from('send_log').select('*,providers(organisation_name),opportunities(name,opportunity_type,deadline,estimated_value,authority)').order('sent_at',{ascending:false});
+  if(rFilter)q=q.eq('response',rFilter);
+  if(oFilter)q=q.eq('outcome',oFilter);
+  var {data}=await q;
+  document.getElementById('pipeline-tbody').innerHTML=(data||[]).length?data.map(s=>{
+    var oppName=(s.opportunities?s.opportunities.name:'—');
+    var oppType=(s.opportunities?s.opportunities.opportunity_type:'—');
+    var oppDeadline=(s.opportunities&&s.opportunities.deadline?fmtDate(s.opportunities.deadline):'—');
+    var oppValue=s.bid_value||(s.opportunities?s.opportunities.estimated_value:'')||'—';
+    var safeId=s.id;
+    var safeName=oppName.replace(/'/g,"\\'").replace(/"/g,'\\"');
+    var safeNotes=(s.notes||'').replace(/'/g,"\\'").replace(/"/g,'\\"');
+    return `<tr>
+      <td><strong>${oppName}</strong></td>
+      <td style="font-size:12px;color:#888">${s.opportunities?s.opportunities.authority||'—':'—'}</td>
+      <td>${s.providers?s.providers.organisation_name:'—'}</td>
+      <td><span class="badge badge-blue">${oppType}</span></td>
+      <td style="font-size:12px">${oppDeadline}</td>
+      <td>${oppValue}</td>
+      <td>${respBadge(s.response)}</td>
+      <td>${respBadge(s.outcome||'Pending')}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openEditSend('${safeId}','${safeName}','${s.response||'Awaiting'}','${s.outcome||'Pending'}','${s.bid_value||''}','${safeNotes}')">Edit</button></td>
+    </tr>`;}).join(''):'<tr><td colspan="9" style="text-align:center;padding:20px;color:#888">No bids found</td></tr>';
+}
+
+// REVENUE
+async function loadRevenue(){
+  var [{data:providers},{data:sends}]=await Promise.all([
+    db.from('providers').select('*'),
+    db.from('send_log').select('*')
+  ]);
+  var total=sends||[];
+  document.getElementById('rev-sent').textContent=total.length;
+  document.getElementById('rev-accepted').textContent=total.filter(s=>s.response==='Accepted').length;
+  var won=total.filter(s=>s.outcome==='Won').length;
+  document.getElementById('rev-won').textContent=won;
+  var accepted=total.filter(s=>s.response==='Accepted').length;
+  document.getElementById('rev-rate').textContent=accepted?Math.round(won/accepted*100)+'%':'—';
+
+  var byP={};
+  (providers||[]).forEach(p=>{byP[p.id]={name:p.organisation_name,sent:0,accepted:0,declined:0,noresponse:0,won:0,lost:0};});
+  total.forEach(s=>{
+    if(!byP[s.provider_id])return;
+    byP[s.provider_id].sent++;
+    if(s.response==='Accepted')byP[s.provider_id].accepted++;
+    else if(s.response==='Declined')byP[s.provider_id].declined++;
+    else byP[s.provider_id].noresponse++;
+    if(s.outcome==='Won')byP[s.provider_id].won++;
+    if(s.outcome==='Lost')byP[s.provider_id].lost++;
+  });
+
+  document.getElementById('revenue-tbody').innerHTML=Object.values(byP).map(p=>{
+    var rr=p.sent?Math.round((p.accepted/p.sent)*100)+'%':'—';
+    var wr=p.accepted?Math.round((p.won/p.accepted)*100)+'%':'—';
+    return `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.sent}</td><td>${p.accepted}</td><td>${p.declined}</td><td>${p.noresponse}</td>
+      <td>${p.won?'<span class="badge badge-green">'+p.won+' 🎉</span>':p.won}</td>
+      <td>${p.lost?'<span class="badge badge-red">'+p.lost+'</span>':p.lost}</td>
+      <td>${p.sent?'<span class="badge '+(parseInt(rr)>=60?'badge-green':'badge-amber')+'">'+rr+'</span>':'<span class="badge badge-grey">—</span>'}</td>
+      <td>${p.accepted?'<span class="badge '+(parseInt(wr)>=60?'badge-green':'badge-amber')+'">'+wr+'</span>':'<span class="badge badge-grey">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// PORTAL LOGINS
+function openPortalModal(){
+  ['portal-username','portal-password','portal-url','portal-notes','portal-name-custom'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('portal-name-select').value='Procontract';
+  document.getElementById('portal-custom-group').style.display='none';
+  openModal('modal-portal');
+}
+function portalNameChange(sel){
+  document.getElementById('portal-custom-group').style.display=sel.value==='Other'?'block':'none';
+}
+async function savePortal(){
+  if(!currentProviderId)return;
+  var nameVal=document.getElementById('portal-name-select').value;
+  if(nameVal==='Other')nameVal=document.getElementById('portal-name-custom').value.trim();
+  if(!nameVal){alert('Please enter a portal name');return;}
+  var {error}=await db.from('portal_logins').insert({
+    provider_id:currentProviderId,
+    portal_name:nameVal,
+    username:document.getElementById('portal-username').value,
+    password:document.getElementById('portal-password').value,
+    portal_url:document.getElementById('portal-url').value,
+    notes:document.getElementById('portal-notes').value
+  });
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-portal');toast('✓ Portal saved!');
+  loadPortals(currentProviderId);
+}
+async function loadPortals(providerId){
+  var el=document.getElementById('portals-list-'+providerId);
+  if(!el)return;
+  var {data,error}=await db.from('portal_logins').select('*').eq('provider_id',providerId).order('portal_name');
+  if(error||!(data||[]).length){el.innerHTML='<div style="font-size:12px;color:#888">No portals added yet.</div>';return;}
+  var visible={};
+  el.innerHTML=data.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(62,85,79,0.06)">
+      <div>
+        <div style="font-size:13px;font-weight:500">${p.portal_name} ${p.portal_url?'<a href="'+p.portal_url+'" target="_blank" style="font-size:11px;color:#3e554f">↗</a>':''}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">${p.username||''} · <span id="pw-${p.id}">••••••••</span></div>
+        ${p.notes?'<div style="font-size:11px;color:#888;margin-top:2px">'+p.notes+'</div>':''}
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn btn-outline btn-sm" onclick="togglePw('${p.id}','${(p.password||'').replace(/'/g,"\\'")}')">Show</button>
+        <button class="btn btn-sm" style="background:#fee2e2;color:#c0392b;border:none" onclick="deletePortal('${p.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function togglePw(id,pw){
+  var el=document.getElementById('pw-'+id);
+  if(el)el.textContent=el.textContent==='••••••••'?pw:'••••••••';
+}
+async function deletePortal(id){
+  if(!confirm('Remove this portal login?'))return;
+  await db.from('portal_logins').delete().eq('id',id);
+  toast('✓ Portal removed');
+  loadPortals(currentProviderId);
+}
+
+// DELETE PROVIDER
+async function deleteProvider(){
+  var id=document.getElementById('ep-id').value;
+  var name=document.getElementById('ep-name').value;
+  if(!confirm('Permanently delete '+name+'? This removes ALL their bids, notes and portal logins. This cannot be undone.'))return;
+  if(!confirm('Final confirmation — delete '+name+'?'))return;
+  await db.from('send_log').delete().eq('provider_id',id);
+  await db.from('meeting_notes').delete().eq('provider_id',id);
+  await db.from('portal_logins').delete().eq('provider_id',id);
+  var {error}=await db.from('providers').delete().eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-edit-provider');
+  toast('Provider deleted');
+  showScreen('providers');
+}
+
+// LOG NOT SENDING
+async function logNotSending(oppId, providerId, providerName){
+  var reason=prompt('Why not sending to '+providerName+'? (optional — press OK to skip)');
+  if(reason===null)return; // cancelled
+  var {error}=await db.from('send_log').insert({
+    opportunity_id:oppId,
+    provider_id:providerId,
+    sent_at:new Date().toISOString(),
+    response:'Not sending',
+    outcome:'N/A',
+    notes:reason||'Decision made not to send'
+  });
+  if(error){alert('Error: '+error.message);return;}
+  toast('Logged — not sending to '+providerName);
+  loadOpportunities();
+}
+
+// ARCHIVE OPPORTUNITY
+async function archiveOpportunity(id, name){
+  if(!confirm('Archive "'+name+'"? It will be removed from the active list but all send history is kept.'))return;
+  var {error}=await db.from('opportunities').update({status:'Archived'}).eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  toast('Opportunity archived');
+  loadOpportunities();
+}
+
+// DELETE OPPORTUNITY
+async function deleteOpportunity(id, name){
+  if(!confirm('Delete "'+name+'"? This removes it from the opportunities list only — any provider history linked to it stays intact.'))return;
+  var {error}=await db.from('opportunities').delete().eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  toast('✓ Opportunity deleted');
+  loadOpportunities();
+}
+
+// DELETE SEND LOG ENTRY
+async function deleteSendLog(id){
+  if(!confirm('Remove this bid record? This cannot be undone.'))return;
+  var {error}=await db.from('send_log').delete().eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  toast('✓ Bid record removed');
+  if(currentProviderId){openProfile(currentProviderId);}else{loadPipeline();}
+}
+
+// SIDEBAR MOBILE
+function openSidebar(){
+  document.querySelector('.sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+// Close sidebar when nav item tapped on mobile
+document.querySelectorAll('.nav-item').forEach(function(item){
+  item.addEventListener('click',function(){
+    if(window.innerWidth<=768)closeSidebar();
+  });
+});
+
+// NOT SENDING
+var _nsOppId=null,_nsProviderId=null,_nsProviderName=null;
+function logNotSendingEnc(oppId,providerId,providerNameEnc){
+  _nsOppId=oppId;
+  _nsProviderId=providerId;
+  _nsProviderName=decodeURIComponent(providerNameEnc);
+  document.getElementById('ns-provider-name').textContent=_nsProviderName;
+  document.getElementById('ns-reason').value='';
+  openModal('modal-not-sending');
+}
+async function confirmNotSending(){
+  var reason=document.getElementById('ns-reason').value.trim();
+  var {error}=await db.from('send_log').insert({
+    opportunity_id:_nsOppId,provider_id:_nsProviderId,
+    sent_at:new Date().toISOString(),
+    response:'Not sending',outcome:'N/A',
+    notes:reason||'Decision made not to send'
+  });
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('modal-not-sending');
+  toast('Logged — not sending to '+_nsProviderName);
+  loadOpportunities();
+}
+
+// INIT
+document.getElementById('n-date').value=new Date().toISOString().split('T')[0];
+loadDashboard();
+</script>
+</body>
+</html>

@@ -2,1161 +2,1490 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="apple-touch-icon" href="https://bidelevate.co.uk/wp-content/uploads/2026/05/BidElevate-Logo.png">
-<link rel="icon" href="https://bidelevate.co.uk/wp-content/uploads/2026/05/BidElevate-Logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="BidElevate CRM">
-<title>BidElevate — Provider Intelligence System</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BidElevate">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3e554f">
+<link rel="manifest" id="be-manifest">
+<script>
+(function(){
+  var manifest = {
+    name: "BidElevate Draft Review",
+    short_name: "BidElevate",
+    description: "Review your tender draft and reply to BidElevate comments",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#3e554f",
+    theme_color: "#3e554f",
+    orientation: "portrait-primary",
+    icons: [{
+      src: "https://bidelevate.co.uk/wp-content/uploads/2026/05/BidElevate-Logo.png",
+      sizes: "512x512",
+      type: "image/png",
+      purpose: "any maskable"
+    }]
+  };
+  var blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  document.getElementById('be-manifest').href = url;
+})();
+</script>
+<link rel="apple-touch-icon" href="https://bidelevate.co.uk/wp-content/uploads/2026/05/BidElevate-Logo.png">
+<title>BidElevate — Draft Review</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#2e3f3a;min-height:100vh}
-.app{display:flex;min-height:100vh}
-.sidebar{width:220px;background:#3e554f;flex-shrink:0;display:flex;flex-direction:column;padding:24px 0;position:fixed;height:100vh;overflow-y:auto}
-.main{flex:1;margin-left:220px}
-.sidebar-logo{padding:0 20px 24px;border-bottom:1px solid rgba(255,255,255,0.1)}
-.sidebar-logo-text{font-size:1.1rem;color:#fff;font-weight:600}
-.sidebar-logo-sub{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;margin-top:3px}
-.nav{padding:16px 0}
-.nav-section{font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:14px 20px 6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:rgba(255,255,255,0.65);cursor:pointer;transition:all 0.15s;border-left:3px solid transparent}
-.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff}
-.nav-item.active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:#fff}
-.header{background:#fff;border-bottom:1px solid rgba(62,85,79,0.1);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-.header-title{font-size:1.15rem;font-weight:600;color:#2e3f3a}
-.header-sub{font-size:12px;color:#888;margin-top:2px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all 0.15s}
-.btn-primary{background:#3e554f;color:#fff}
-.btn-primary:hover{background:#2e3f3a}
-.btn-outline{background:none;border:1px solid rgba(62,85,79,0.3);color:#3e554f}
-.btn-outline:hover{background:rgba(62,85,79,0.06)}
-.btn-sm{padding:5px 12px;font-size:12px}
-.btn-green{background:#eef2f1;color:#3e554f;border:1px solid rgba(62,85,79,0.2)}
-.content{padding:24px 28px}
-.screen{display:none}
-.screen.active{display:block}
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-card{background:#fff;border-radius:10px;padding:20px;border:1px solid rgba(62,85,79,0.08)}
-.stat-label{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:8px}
-.stat-value{font-size:2rem;color:#3e554f;font-weight:600}
-.stat-sub{font-size:11px;color:#888;margin-top:4px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.card{background:#fff;border-radius:10px;padding:20px;border:1px solid rgba(62,85,79,0.08);margin-bottom:16px}
-.card-title{font-size:13px;font-weight:600;color:#2e3f3a;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.table{width:100%;border-collapse:collapse}
-.table th{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;border-bottom:1px solid rgba(62,85,79,0.08);background:#fafafa}
-.table td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(62,85,79,0.05);vertical-align:middle}
-.table tr:last-child td{border-bottom:none}
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
-.badge-green{background:#eef2f1;color:#3e554f}
-.badge-amber{background:#fff8e6;color:#b07800}
-.badge-red{background:#fee2e2;color:#c0392b}
-.badge-blue{background:#e8f0fe;color:#1a56db}
-.badge-grey{background:#f0f0f0;color:#666}
-.badge-purple{background:#f3e8ff;color:#6b21a8}
-.tag{display:inline-block;background:#eef2f1;color:#3e554f;border-radius:4px;padding:2px 7px;font-size:11px;margin:2px}
-.search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-.search-input{flex:1;min-width:180px;padding:9px 14px;border:1px solid rgba(62,85,79,0.2);border-radius:6px;font-size:13px;font-family:inherit;outline:none}
-.search-input:focus{border-color:#3e554f}
-.form-select{padding:9px 14px;border:1px solid rgba(62,85,79,0.2);border-radius:6px;font-size:13px;font-family:inherit;color:#2e3f3a;background:#fff;outline:none}
-.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3e554f;cursor:pointer;margin-bottom:16px;background:none;border:none;font-family:inherit;padding:0}
-.back-btn:hover{text-decoration:underline}
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto}
-.modal-title{font-size:1.05rem;font-weight:600;color:#2e3f3a;margin-bottom:20px}
-.form-group{margin-bottom:14px}
-.form-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;display:block}
-.form-input{width:100%;padding:9px 12px;border:1px solid rgba(62,85,79,0.2);border-radius:6px;font-size:13px;font-family:inherit;outline:none;color:#2e3f3a}
-.form-input:focus{border-color:#3e554f}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid rgba(62,85,79,0.1)}
-.note-item{background:#f7f5f0;border-radius:8px;padding:12px 14px;margin-bottom:10px;border-left:3px solid #3e554f}
-.note-date{font-size:10px;color:#888;margin-bottom:4px}
-.note-text{font-size:12px;color:#444;line-height:1.6}
-.flag-banner{background:#fff8e6;border:1px solid #f0c040;border-radius:8px;padding:10px 14px;font-size:12px;color:#8a6000;margin-bottom:14px}
-.flag-info{background:#eef2f1;border:1px solid rgba(62,85,79,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#3e554f;margin-bottom:14px}
-.flag-success{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;margin-bottom:14px}
-.loading{text-align:center;padding:30px;color:#888;font-size:13px}
-.opp-row{background:#fff;border-radius:10px;padding:16px 20px;border:1px solid rgba(62,85,79,0.08);margin-bottom:10px}
-.match-card{background:#eef2f1;border-radius:8px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.match-card.weak{background:#f7f5f0;opacity:0.75}
-.profile-avatar{width:44px;height:44px;border-radius:50%;background:#3e554f;color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.toast{position:fixed;bottom:24px;right:24px;background:#3e554f;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:200;display:none}
-.inline-select{font-size:11px;padding:3px 8px;border:1px solid rgba(62,85,79,0.2);border-radius:4px;font-family:inherit;background:#fff;color:#2e3f3a;cursor:pointer}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ===== MOBILE STYLES ===== */
-.hamburger{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0;line-height:1}
-.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:49}
-.sidebar-overlay.open{display:block}
+:root {
+  --green: #3e554f;
+  --green-light: #eaf3ee;
+  --green-mid: #c5d9d2;
+  --text: #1a1a1a;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --bg: #f9fafb;
+  --white: #ffffff;
+  --red: #ef4444;
+  --red-light: #fee2e2;
+  --amber: #f59e0b;
+  --amber-light: #fef3c7;
+  --blue: #3b82f6;
+  --pink: #ec4899;
+  --teal: #14b8a6;
+  --purple: #8b5cf6;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
 
-@media(max-width:768px){
-  .sidebar{transform:translateX(-100%);transition:transform 0.25s ease;z-index:50}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
-  .hamburger{display:block}
-  .header{padding:12px 16px;gap:8px}
-  .header-title{font-size:1rem}
-  .header-actions{display:flex;gap:6px;align-items:center}
-  .content{padding:16px}
-  .stat-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-  .stat-card{padding:14px}
-  .stat-value{font-size:1.5rem}
-  .grid-2{grid-template-columns:1fr;gap:12px}
-  .card{padding:16px;margin-bottom:12px}
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
 
-  /* Tables become cards on mobile */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .mobile-card-list .table thead{display:none}
-  .mobile-card-list .table tbody tr{display:block;background:#fff;border-radius:8px;margin-bottom:10px;border:1px solid rgba(62,85,79,0.1);padding:12px}
-  .mobile-card-list .table tbody td{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border:none;font-size:12px}
-  .mobile-card-list .table tbody td:first-child{font-weight:600;font-size:13px;border-bottom:1px solid rgba(62,85,79,0.08);padding-bottom:8px;margin-bottom:4px;display:block}
-  .mobile-card-list .table tbody td:before{content:attr(data-label);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#888;margin-right:8px;flex-shrink:0}
+/* ---- SCREENS ---- */
+.screen { display: none; min-height: 100vh; flex-direction: column; }
+.screen.active { display: flex; }
 
-  /* Opportunity rows on mobile */
-  .opp-row{padding:14px;flex-direction:column;gap:10px}
-  .match-card{flex-direction:column;align-items:flex-start;gap:8px}
+/* ---- LOGIN ---- */
+#login-screen {
+  background: var(--green);
+  align-items: center;
+  justify-content: center;
+  padding: calc(24px + var(--safe-top)) 24px calc(24px + var(--safe-bottom));
+}
 
-  /* Forms on mobile */
-  .form-row{grid-template-columns:1fr}
-  .modal{padding:20px;width:95vw;margin:10px}
-  .modal-actions{flex-direction:column}
-  .modal-actions .btn{width:100%;justify-content:center}
+.login-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 36px 28px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
 
-  /* Search bar */
-  .search-bar{flex-direction:column}
-  .search-input{min-width:unset}
+.login-logo-img {
+  width: 140px;
+  height: auto;
+  margin: 0 auto 6px;
+  display: block;
+}
 
-  /* Profile */
-  .profile-flex{flex-direction:column}
-  .profile-stats{text-align:left!important;margin-top:12px}
+.login-tagline {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
 
-  /* Buttons */
-  .btn-sm{padding:6px 12px}
-  .header-btn-group{display:flex;flex-wrap:wrap;gap:6px}
+.login-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  margin-bottom: 14px;
+  outline: none;
+  color: var(--text);
+  background: var(--white);
+  -webkit-appearance: none;
+}
+
+.login-input:focus { border-color: var(--green); }
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.login-error {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 10px;
+  display: none;
+  background: var(--red-light);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.login-switch {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.login-switch a {
+  color: var(--green);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---- APP HEADER ---- */
+.app-header {
+  background: var(--green);
+  padding: calc(14px + var(--safe-top)) 16px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.header-logo-img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.pill {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill-white { background: rgba(255,255,255,0.2); color: #fff; }
+.pill-green { background: var(--green-light); color: var(--green); }
+.pill-amber { background: var(--amber-light); color: #92400e; }
+
+.header-signout {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- TABS (mobile nav) ---- */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+/* ---- SETUP BODY ---- */
+#setup-screen { background: var(--bg); }
+
+.setup-tab-content { display: none; flex: 1; overflow-y: auto; }
+.setup-tab-content.active { display: block; }
+
+/* config panel */
+.config-panel {
+  padding: 20px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+
+.config-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 14px;
+}
+
+.form-group { margin-bottom: 12px; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.form-input, .form-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.form-input:focus, .form-textarea:focus { border-color: var(--green); }
+.form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+/* doc panel */
+.doc-panel {
+  padding: 20px 16px;
+  background: var(--white);
+}
+
+.doc-panel-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+}
+
+.doc-editor {
+  width: 100%;
+  min-height: 200px;
+  border: 1.5px dashed var(--green-mid);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: #fafffe;
+  outline: none;
+  line-height: 1.7;
+  -webkit-appearance: none;
+}
+
+.doc-editor:focus { border-color: var(--green); background: var(--white); }
+
+.doc-display {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  word-break: break-word;
+}
+
+/* comment highlight colours */
+.comment-highlight { border-radius: 2px; padding: 1px 2px; cursor: pointer; }
+
+/* comments panel */
+.comments-panel { padding: 16px; }
+
+.comments-panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.comment-count-badge {
+  font-size: 12px;
+  background: var(--green);
+  color: var(--white);
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+.comment-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.comment-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+
+.comment-inner { padding-left: 8px; }
+
+.comment-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.comment-author { font-size: 12px; font-weight: 700; color: var(--green); }
+.comment-time { font-size: 11px; color: var(--text-muted); }
+
+.comment-quote {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  border-left: 2px solid var(--border);
+  padding-left: 8px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.comment-body {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.comment-reply-display {
+  font-size: 13px;
+  color: var(--text);
+  background: var(--green-light);
+  border-radius: 8px;
+  padding: 8px 12px;
+  line-height: 1.5;
+  border-left: 3px solid var(--green);
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.delete-btn:hover { color: var(--red); }
+
+/* add comment form */
+.add-comment-section {
+  padding: 16px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.add-comment-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.color-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.color-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s;
+}
+
+.color-dot:active { transform: scale(0.9); }
+.color-dot.selected { border-color: var(--text); }
+
+.add-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* generate bar */
+.generate-bar {
+  padding: 16px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.generate-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  margin-bottom: 10px;
+}
+
+.link-box {
+  background: var(--green-light);
+  border: 1px solid var(--green-mid);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 500;
+  word-break: break-all;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.copy-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--white);
+  color: var(--green);
+  border: 2px solid var(--green);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- CLIENT SCREEN ---- */
+#client-screen { background: var(--bg); }
+
+.client-tab-content { display: none; flex: 1; overflow-y: auto; }
+.client-tab-content.active { display: block; }
+
+.client-doc-panel {
+  padding: 20px 16px;
+  background: var(--white);
+}
+
+.client-doc-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.client-doc-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.client-comment-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.required-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.req-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+}
+
+.req-dot.done { background: var(--green); }
+.req-label { color: var(--text-muted); }
+.req-label.done { color: var(--green); }
+
+.client-reply-area {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  resize: none;
+  min-height: 80px;
+  margin-top: 10px;
+  line-height: 1.6;
+  -webkit-appearance: none;
+}
+
+.client-reply-area:focus { border-color: var(--green); }
+.client-reply-area.filled { border-color: var(--green); background: #fafffe; }
+
+/* submit bar */
+.submit-bar {
+  padding: 16px;
+  padding-bottom: calc(16px + var(--safe-bottom));
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.progress-label { color: var(--text-muted); }
+.progress-count { font-weight: 700; color: var(--text); }
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s;
+}
+
+.submit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.submit-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* ---- SUCCESS ---- */
+#success-screen {
+  background: var(--green);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.success-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 48px 28px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.success-icon { font-size: 52px; margin-bottom: 16px; }
+
+.success-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+}
+
+.success-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ---- EMPTY STATE ---- */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+/* ---- NOTIFICATION ---- */
+.notif {
+  position: fixed;
+  bottom: calc(20px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 22px;
+  border-radius: 10px;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.notif.show { opacity: 1; }
+
+/* ---- INSTALL BANNER ---- */
+.install-banner {
+  display: none;
+  background: var(--green-light);
+  border-bottom: 1px solid var(--green-mid);
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--green);
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.install-banner.show { display: flex; }
+.install-banner-text { flex: 1; font-weight: 500; }
+
+.install-btn {
+  padding: 6px 14px;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dismiss-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* desktop two-panel layout */
+@media (min-width: 768px) {
+  .tab-bar { display: none !important; }
+  .setup-tab-content { display: none !important; }
+  .client-tab-content { display: none !important; }
+  #client-submit-bar { display: none !important; }
+
+  .setup-body-desktop {
+    display: grid !important;
+    grid-template-columns: 1fr 380px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .setup-col-left {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  .setup-col-right {
+    overflow-y: auto;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .client-body-desktop {
+    display: grid !important;
+    grid-template-columns: 1fr 380px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .client-col-left {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    background: var(--white);
+  }
+
+  .client-col-right {
+    overflow-y: auto;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
 }
 </style>
 </head>
 <body>
 
-<div class="toast" id="toast">✓ Saved</div>
+<div class="notif" id="notif"></div>
 
-<!-- ADD PROVIDER MODAL -->
-<div class="modal-overlay" id="modal-provider">
-  <div class="modal">
-    <div class="modal-title">Add New Provider</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Organisation Name *</label><input class="form-input" id="p-name" placeholder="e.g. Sunrise Care Ltd"></div>
-      <div class="form-group"><label class="form-label">Contact Name</label><input class="form-input" id="p-contact" placeholder="e.g. James Smith"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="p-email" type="email"></div>
-      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="p-phone"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Services (comma separated)</label><input class="form-input" id="p-services" placeholder="Home Care, Supported Living, Floating Support"></div>
-    <div class="form-group"><label class="form-label">Regions / Areas (comma separated)</label><input class="form-input" id="p-regions" placeholder="Birmingham, West Midlands, Peterborough"><div style="font-size:11px;color:#888;margin-top:3px">Towns, counties and NHS regions all work — be as specific as needed</div></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">CQC Rating</label>
-        <select class="form-input" id="p-cqc"><option>Good</option><option>Outstanding</option><option>Requires Improvement</option><option>Inadequate</option><option selected>Unrated — Not yet inspected</option><option>N/A — Not applicable</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Retainer?</label>
-        <select class="form-input" id="p-retainer"><option value="false">No</option><option value="true">Yes</option></select>
-      </div>
-    </div>
-    <div class="form-group"><label class="form-label">Discovery Call Notes</label><textarea class="form-input" id="p-notes" rows="3" placeholder="Key notes..."></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-provider')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveProvider()">Save Provider</button>
-    </div>
-  </div>
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="install-banner">
+  <span class="install-banner-text">📲 Add BidElevate to your home screen for quick access</span>
+  <button class="install-btn" id="install-btn">Add</button>
+  <button class="dismiss-btn" onclick="dismissInstall()">✕</button>
 </div>
 
-<!-- ADD OPPORTUNITY MODAL -->
-<div class="modal-overlay" id="modal-opportunity">
-  <div class="modal">
-    <div class="modal-title">Add New Opportunity</div>
-    <div class="form-group"><label class="form-label">Opportunity Name *</label><input class="form-input" id="o-name" placeholder="e.g. Supported Living Framework Lot 1 & 2"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Contracting Authority</label><input class="form-input" id="o-authority"></div>
-      <div class="form-group"><label class="form-label">Reference</label><input class="form-input" id="o-ref"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Type</label>
-        <select class="form-input" id="o-type"><option>DPS</option><option>Framework</option><option>Call-Off</option><option>Mini Competition</option><option>Direct Award</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Deadline</label><input class="form-input" id="o-deadline" type="date"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Service Types (comma separated)</label><input class="form-input" id="o-services" placeholder="Home Care, Supported Living"></div>
-      <div class="form-group"><label class="form-label">Region / Area</label><input class="form-input" id="o-region" placeholder="e.g. Birmingham, West Midlands"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">CQC Required</label>
-        <select class="form-input" id="o-cqc"><option>Yes — rated providers only</option><option selected>Yes — registered but unrated acceptable</option><option>No — CQC not required</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Value to BidElevate</label><input class="form-input" id="o-value" placeholder="e.g. £1,200"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="o-notes" rows="2"></textarea></div>
-    <div class="form-group"><label class="form-label">Source Link</label><input class="form-input" id="o-link" placeholder="https://..."></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-opportunity')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveOpportunity()">Save & Match Providers</button>
-    </div>
-  </div>
-</div>
+<!-- ===================== LOGIN ===================== -->
+<div class="screen active" id="login-screen">
+  <div class="login-card">
+    <img class="login-logo-img" src="https://bidelevate.co.uk/wp-content/uploads/2026/05/BidElevate-Logo.png" alt="BidElevate" onerror="this.style.display='none';document.getElementById('login-text-logo').style.display='block'">
+    <div id="login-text-logo" style="display:none;font-size:22px;font-weight:700;color:var(--green);margin-bottom:6px;">BidElevate</div>
+    <div class="login-tagline">Draft Review Portal</div>
 
-<!-- ADD NOTE MODAL -->
-<div class="modal-overlay" id="modal-note">
-  <div class="modal">
-    <div class="modal-title">Add Meeting Note</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="n-date" type="date"></div>
-      <div class="form-group"><label class="form-label">Call Type</label>
-        <select class="form-input" id="n-type"><option>Discovery Call</option><option>Check-in Call</option><option>Draft Review</option><option>Kick-off Call</option><option>Final Review</option><option>Other</option></select>
+    <div id="client-login">
+      <label class="login-label">Your unique review code</label>
+      <input class="login-input" type="text" id="client-code" placeholder="Enter the code BidElevate sent you" autocomplete="off" autocapitalize="characters">
+      <button class="login-btn" onclick="clientLogin()">Care provider sign in</button>
+      <div class="login-error" id="client-error">Code not found. Please check with BidElevate.</div>
+      <div class="login-switch" style="margin-top:24px;">
+        <a onclick="showJadeLogin()" style="font-size:12px; color:var(--text-muted);">BidElevate staff sign in</a>
       </div>
     </div>
-    <div class="form-group"><label class="form-label">Notes *</label><textarea class="form-input" id="n-notes" rows="5" placeholder="Key points from the call..."></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-note')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
-    </div>
-  </div>
-</div>
 
-<!-- ADD PAST BID MODAL -->
-<div class="modal-overlay" id="modal-past-bid">
-  <div class="modal">
-    <div class="modal-title">Log Past Bid / Opportunity</div>
-    <div class="form-group"><label class="form-label">Opportunity Name *</label><input class="form-input" id="pb-name" placeholder="e.g. Dudley MBC Supported Living Framework"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Contracting Authority</label><input class="form-input" id="pb-authority"></div>
-      <div class="form-group"><label class="form-label">Opportunity Type *</label>
-        <select class="form-input" id="pb-type"><option>DPS</option><option>Framework</option><option>Call-Off</option><option>Mini Competition</option><option>Direct Award</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Submission Deadline</label><input class="form-input" id="pb-deadline" type="date"></div>
-      <div class="form-group"><label class="form-label">Date Sent to Client</label><input class="form-input" id="pb-sent" type="date"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Client Response</label>
-        <select class="form-input" id="pb-response"><option>Accepted</option><option>Declined</option><option>Awaiting</option><option>No Response</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Bid Outcome</label>
-        <select class="form-input" id="pb-outcome"><option>Pending</option><option>Won</option><option>Lost</option><option>Withdrawn</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Value to BidElevate</label><input class="form-input" id="pb-value" placeholder="e.g. £1,200"></div>
-      <div class="form-group"><label class="form-label">Portal Used</label><input class="form-input" id="pb-portal" placeholder="e.g. Procontract"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="pb-notes" rows="2" placeholder="Any notes about this bid..."></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-past-bid')">Cancel</button>
-      <button class="btn btn-primary" onclick="savePastBid()">Save Bid</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT SEND LOG MODAL -->
-<div class="modal-overlay" id="modal-edit-send">
-  <div class="modal">
-    <div class="modal-title">Edit Bid Record</div>
-    <input type="hidden" id="es-id">
-    <div class="form-group"><label class="form-label">Opportunity Name</label><input class="form-input" id="es-name" readonly style="background:#f5f5f3"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Client Response</label>
-        <select class="form-input" id="es-response"><option>Awaiting</option><option>Accepted</option><option>Declined</option><option>No Response</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Bid Outcome</label>
-        <select class="form-input" id="es-outcome"><option>Pending</option><option>Won</option><option>Lost</option><option>Withdrawn</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Value to BidElevate</label><input class="form-input" id="es-value" placeholder="e.g. £1,200"></div>
-      <div class="form-group"><label class="form-label">Response Date</label><input class="form-input" id="es-date" type="date"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="es-notes" rows="2"></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-edit-send')">Cancel</button>
-      <button class="btn btn-primary" onclick="updateSendLog()">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- NOT SENDING MODAL -->
-<div class="modal-overlay" id="modal-not-sending">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-title">Not sending to <span id="ns-provider-name"></span></div>
-    <div class="form-group">
-      <label class="form-label">Reason (optional)</label>
-      <input class="form-input" id="ns-reason" placeholder="e.g. Budget too small, wrong lot, client not ready...">
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-not-sending')">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmNotSending()">Confirm</button>
-    </div>
-  </div>
-</div>
-
-<!-- ADD PORTAL MODAL -->
-<div class="modal-overlay" id="modal-portal">
-  <div class="modal">
-    <div class="modal-title">🔐 Add Portal Login</div>
-    <div class="form-group"><label class="form-label">Portal Name</label>
-      <select class="form-input" id="portal-name-select" onchange="portalNameChange(this)">
-        <option>Procontract</option>
-        <option>In-tend</option>
-        <option>Chest</option>
-        <option>Find a Tender</option>
-        <option>Bravo</option>
-        <option>Delta eSourcing</option>
-        <option>ProActis</option>
-        <option>YPO</option>
-        <option>Other</option>
-      </select>
-    </div>
-    <div class="form-group" id="portal-custom-group" style="display:none">
-      <label class="form-label">Portal Name (custom)</label>
-      <input class="form-input" id="portal-name-custom" placeholder="e.g. NHS SBS Portal">
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Username / Email</label><input class="form-input" id="portal-username" placeholder="e.g. info@provider.co.uk"></div>
-      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="portal-password" placeholder="Password"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Portal URL</label><input class="form-input" id="portal-url" placeholder="https://..."></div>
-    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="portal-notes" placeholder="e.g. Registered for Lot 1 only"></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-portal')">Cancel</button>
-      <button class="btn btn-primary" onclick="savePortal()">Save Portal</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT PROVIDER MODAL -->
-<div class="modal-overlay" id="modal-edit-provider">
-  <div class="modal">
-    <div class="modal-title">Edit Provider</div>
-    <input type="hidden" id="ep-id">
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Organisation Name</label><input class="form-input" id="ep-name"></div>
-      <div class="form-group"><label class="form-label">Contact Name</label><input class="form-input" id="ep-contact"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="ep-email" type="email"></div>
-      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="ep-phone"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Services (comma separated)</label><input class="form-input" id="ep-services"></div>
-    <div class="form-group"><label class="form-label">Regions (comma separated)</label><input class="form-input" id="ep-regions"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">CQC Rating</label>
-        <select class="form-input" id="ep-cqc"><option>Good</option><option>Outstanding</option><option>Requires Improvement</option><option>Inadequate</option><option>Unrated — Not yet inspected</option><option>N/A — Not applicable</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Retainer?</label>
-        <select class="form-input" id="ep-retainer"><option value="false">No</option><option value="true">Yes</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">🎨 Botanical Print Sent?</label>
-        <select class="form-input" id="ep-print"><option value="false">No — pending win</option><option value="true">Yes — sent!</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Print Date</label><input class="form-input" id="ep-print-date" type="date"></div>
-    </div>
-    <div class="modal-actions" style="justify-content:space-between">
-      <button class="btn btn-sm" style="background:#fee2e2;color:#c0392b;border:none" onclick="deleteProvider()">&#128465; Delete Provider</button>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-outline" onclick="closeModal('modal-edit-provider')">Cancel</button>
-        <button class="btn btn-primary" onclick="updateProvider()">Save Changes</button>
+    <div id="jade-login" style="display:none;">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="jade-password" placeholder="Enter your password" autocomplete="current-password">
+      <button class="login-btn" onclick="jadeLogin()">Sign in as BidElevate</button>
+      <div class="login-error" id="jade-error">Incorrect password. Please try again.</div>
+      <div class="login-switch" style="margin-top:16px;">
+        <a onclick="showClientLogin()" style="font-size:12px; color:var(--text-muted);">← Back</a>
       </div>
     </div>
   </div>
 </div>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<div class="app">
-<div class="sidebar">
-  <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <div class="sidebar-logo-text">BidElevate</div>
-      <div class="sidebar-logo-sub">Provider Intelligence</div>
+<!-- ===================== JADE SETUP SCREEN ===================== -->
+<div class="screen" id="setup-screen">
+  <div class="app-header">
+    <img class="header-logo-img" src="https://bidelevate.co.uk/wp-content/uploads/2026/05/BidElevate-Logo.png" alt="BidElevate" onerror="this.style.color='#fff';this.outerHTML='<span style=\'color:#fff;font-weight:700;font-size:16px;\'>BidElevate</span>'">
+    <div class="header-right">
+      <span class="pill pill-white" id="setup-comment-pill">0 comments</span>
+      <button class="header-signout" onclick="logout()">Sign out</button>
     </div>
-    <button class="hamburger" onclick="closeSidebar()" style="color:rgba(255,255,255,0.6);font-size:18px">✕</button>
   </div>
-  <div class="nav">
-    <div class="nav-section">Main</div>
-    <div class="nav-item active" onclick="showScreen('dashboard')">📊 Dashboard</div>
-    <div class="nav-item" onclick="showScreen('providers')">🏢 Providers</div>
-    <div class="nav-item" onclick="showScreen('opportunities')">🎯 Opportunities</div>
-    <div class="nav-section">Tracking</div>
-    <div class="nav-item" onclick="showScreen('pipeline')">📋 Bid Pipeline</div>
-    <div class="nav-item" onclick="showScreen('revenue')">💷 Wins & Revenue</div>
+
+  <!-- TABS (mobile only) -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchSetupTab('config', this)">Details</button>
+    <button class="tab-btn" onclick="switchSetupTab('doc', this)">Document</button>
+    <button class="tab-btn" onclick="switchSetupTab('comments', this)">Comments</button>
+  </div>
+
+  <!-- DESKTOP TWO-PANEL -->
+  <div class="setup-body-desktop" style="display:none;flex:1;overflow:hidden;">
+    <div class="setup-col-left">
+      <!-- config -->
+      <div class="config-panel">
+        <div class="config-title">Review details</div>
+        <div class="form-group">
+          <label class="form-label">Client name</label>
+          <input class="form-input" id="client-name-d" placeholder="e.g. Care At Call Ltd">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tender / section reference</label>
+          <input class="form-input" id="tender-ref-d" placeholder="e.g. Durham SL — Section 4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Review code</label>
+          <input class="form-input" id="review-code-d" placeholder="e.g. CAREACALL-001" style="font-family:monospace;">
+        </div>
+      </div>
+      <!-- doc -->
+      <div class="doc-panel" style="margin-top:1px;">
+        <div class="doc-panel-label">Paste draft here</div>
+        <div class="doc-editor" id="doc-editor-d" contenteditable="true" spellcheck="true"></div>
+      </div>
+    </div>
+    <div class="setup-col-right">
+      <div class="comments-panel" id="comments-list-d-wrap">
+        <div class="comments-panel-title">
+          Comments
+          <span class="comment-count-badge" id="count-badge-d">0</span>
+        </div>
+        <div id="comments-list-d">
+          <div class="empty-state"><div class="empty-icon">💬</div>Add comments using the form below</div>
+        </div>
+      </div>
+      <div class="add-comment-section">
+        <div class="add-comment-title">Add a comment</div>
+        <div class="form-group">
+          <label class="form-label">Colour</label>
+          <div class="color-row" id="color-row-d">
+            <div class="color-dot selected" style="background:#f59e0b;" data-color="amber" onclick="selectColor(this,'d')"></div>
+            <div class="color-dot" style="background:#3b82f6;" data-color="blue" onclick="selectColor(this,'d')"></div>
+            <div class="color-dot" style="background:#ec4899;" data-color="pink" onclick="selectColor(this,'d')"></div>
+            <div class="color-dot" style="background:#14b8a6;" data-color="teal" onclick="selectColor(this,'d')"></div>
+            <div class="color-dot" style="background:#8b5cf6;" data-color="purple" onclick="selectColor(this,'d')"></div>
+            <div class="color-dot" style="background:#ef4444;" data-color="red" onclick="selectColor(this,'d')"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your comment</label>
+          <textarea class="form-textarea" id="comment-text-d" placeholder="Write your comment or question for the client…" style="min-height:80px;"></textarea>
+        </div>
+        <button class="add-btn" onclick="addComment('d')">Add comment</button>
+      </div>
+      <div class="generate-bar">
+        <div id="gen-bar-d">
+          <button class="generate-btn" onclick="generateLink('d')">Generate client link →</button>
+        </div>
+        <div id="link-bar-d" style="display:none;">
+          <div class="link-box" id="link-display-d"></div>
+          <button class="copy-btn" onclick="copyLink('d')">Copy link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE TABS -->
+  <div class="setup-tab-content active" id="setup-config-tab">
+    <div class="config-panel">
+      <div class="config-title">Review details</div>
+      <div class="form-group">
+        <label class="form-label">Client name</label>
+        <input class="form-input" id="client-name-m" placeholder="e.g. Care At Call Ltd">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tender / section reference</label>
+        <input class="form-input" id="tender-ref-m" placeholder="e.g. Durham SL — Section 4">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Review code (you'll share this with the client)</label>
+        <input class="form-input" id="review-code-m" placeholder="e.g. CAREACALL-001" style="font-family:monospace;" autocapitalize="characters">
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-tab-content" id="setup-doc-tab">
+    <div class="doc-panel">
+      <div class="doc-panel-label">Paste your draft document here</div>
+      <textarea class="form-textarea" id="doc-editor-m" placeholder="Paste the full draft text here…" style="min-height:300px;border-style:dashed;border-color:var(--green-mid);background:#fafffe;font-size:14px;line-height:1.8;border-radius:10px;"></textarea>
+    </div>
+  </div>
+
+  <div class="setup-tab-content" id="setup-comments-tab">
+    <div class="comments-panel">
+      <div class="comments-panel-title">
+        Comments
+        <span class="comment-count-badge" id="count-badge-m">0</span>
+      </div>
+      <div id="comments-list-m">
+        <div class="empty-state"><div class="empty-icon">💬</div>Add your first comment below</div>
+      </div>
+    </div>
+    <div class="add-comment-section">
+      <div class="add-comment-title">Add a comment</div>
+      <div class="form-group">
+        <label class="form-label">Colour</label>
+        <div class="color-row" id="color-row-m">
+          <div class="color-dot selected" style="background:#f59e0b;" data-color="amber" onclick="selectColor(this,'m')"></div>
+          <div class="color-dot" style="background:#3b82f6;" data-color="blue" onclick="selectColor(this,'m')"></div>
+          <div class="color-dot" style="background:#ec4899;" data-color="pink" onclick="selectColor(this,'m')"></div>
+          <div class="color-dot" style="background:#14b8a6;" data-color="teal" onclick="selectColor(this,'m')"></div>
+          <div class="color-dot" style="background:#8b5cf6;" data-color="purple" onclick="selectColor(this,'m')"></div>
+          <div class="color-dot" style="background:#ef4444;" data-color="red" onclick="selectColor(this,'d')"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your comment</label>
+        <textarea class="form-textarea" id="comment-text-m" placeholder="Write your comment or question for the client…" style="min-height:80px;"></textarea>
+      </div>
+      <button class="add-btn" onclick="addComment('m')">Add comment</button>
+    </div>
+    <div class="generate-bar">
+      <div id="gen-bar-m">
+        <button class="generate-btn" onclick="generateLink('m')">Generate client link →</button>
+      </div>
+      <div id="link-bar-m" style="display:none;">
+        <div class="link-box" id="link-display-m"></div>
+        <button class="copy-btn" onclick="copyLink('m')">Copy link</button>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="main">
-
-<!-- DASHBOARD -->
-<div class="screen active" id="screen-dashboard">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
-      <div><div class="header-title">Good morning, Jade 👋</div><div class="header-sub" id="dash-date"></div></div>
+<!-- ===================== CLIENT REVIEW SCREEN ===================== -->
+<div class="screen" id="client-screen">
+  <div class="app-header">
+    <img class="header-logo-img" src="https://bidelevate.co.uk/wp-content/uploads/2026/05/BidElevate-Logo.png" alt="BidElevate" onerror="this.outerHTML='<span style=\'color:#fff;font-weight:700;font-size:16px;\'>BidElevate</span>'">
+    <div class="header-right">
+      <span class="pill pill-amber" id="client-progress-pill">0 of 0 replied</span>
     </div>
-    <button class="btn btn-primary" onclick="openModal('modal-opportunity')">+ Add</button>
   </div>
-  <div class="content">
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Total Providers</div><div class="stat-value" id="stat-providers">—</div></div>
-      <div class="stat-card"><div class="stat-label">Retainer Clients</div><div class="stat-value" id="stat-retainers">—</div></div>
-      <div class="stat-card"><div class="stat-label">Active Opportunities</div><div class="stat-value" id="stat-opps">—</div></div>
-      <div class="stat-card"><div class="stat-label">Awaiting Response</div><div class="stat-value" id="stat-awaiting">—</div></div>
+
+  <!-- TABS mobile -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchClientTab('draft', this)">📄 Draft</button>
+    <button class="tab-btn" onclick="switchClientTab('reply', this)" id="reply-tab-btn">💬 Reply <span id="reply-tab-badge" style="background:var(--red);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></button>
+  </div>
+
+  <!-- DESKTOP TWO-PANEL -->
+  <div class="client-body-desktop" style="display:none;flex:1;overflow:hidden;">
+    <div class="client-col-left">
+      <div class="client-doc-panel">
+        <div class="client-doc-title" id="client-doc-title-d"></div>
+        <div class="client-doc-meta" id="client-doc-meta-d"></div>
+        <div class="doc-display" id="client-doc-content-d"></div>
+      </div>
     </div>
-    <div class="card"><div class="card-title">🎨 Botanical Print Tracker</div><div id="print-reminders"><div class="loading">Loading...</div></div></div>
-    <div class="card"><div class="card-title">Your Providers</div><div id="dash-providers"><div class="loading">Loading...</div></div></div>
+    <div class="client-col-right">
+      <div style="padding:16px;flex:1;overflow-y:auto;" id="client-comments-d"></div>
+      <div class="submit-bar">
+        <div class="progress-row">
+          <span class="progress-label">Replies completed</span>
+          <span class="progress-count" id="progress-text-d">0 / 0</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill-d" style="width:0%"></div>
+        </div>
+        <button class="submit-btn" id="submit-btn-d" disabled onclick="submitReview()">Reply to all comments to submit</button>
+        <div class="submit-hint" id="submit-hint-d">You must reply to every comment before submitting.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE TABS -->
+  <div class="client-tab-content active" id="client-draft-tab">
+    <div class="client-doc-panel">
+      <div class="client-doc-title" id="client-doc-title-m"></div>
+      <div class="client-doc-meta" id="client-doc-meta-m"></div>
+      <div class="doc-display" id="client-doc-content-m"></div>
+    </div>
+  </div>
+
+  <div class="client-tab-content" id="client-reply-tab">
+    <div style="padding:16px;" id="client-comments-m"></div>
+  </div>
+
+  <div class="submit-bar" id="client-submit-bar" style="display:none;">
+    <div class="progress-row">
+      <span class="progress-label">Replies completed</span>
+      <span class="progress-count" id="progress-text-m">0 / 0</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill-m" style="width:0%"></div>
+    </div>
+    <button class="submit-btn" id="submit-btn-m" disabled onclick="submitReview()">Reply to all comments to submit</button>
+    <div class="submit-hint" id="submit-hint-m">You must reply to every comment before submitting.</div>
   </div>
 </div>
 
-<!-- PROVIDERS -->
-<div class="screen" id="screen-providers">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
-      <div><div class="header-title">Providers</div><div class="header-sub" id="providers-count"></div></div>
-    </div>
-    <button class="btn btn-primary" onclick="openModal('modal-provider')">+ Add</button>
+<!-- ===================== SUCCESS ===================== -->
+<div class="screen" id="success-screen">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Review submitted!</div>
+    <div class="success-sub">Thank you — your replies have been sent to BidElevate. We'll be in touch once we've reviewed your feedback and updated the draft.</div>
   </div>
-  <div class="content">
-    <div class="search-bar">
-      <input class="search-input" id="provider-search" placeholder="Search name, contact or email..." oninput="filterProviders()">
-      <select class="form-select" id="filter-retainer" onchange="filterProviders()">
-        <option value="">All clients</option><option value="true">Retainer only</option><option value="false">Non-retainer</option>
-      </select>
-    </div>
-    <div class="mobile-card-list" style="background:#fff;border-radius:10px;overflow:hidden;border:1px solid rgba(62,85,79,0.08)">
-      <table class="table">
-        <thead><tr><th>Provider</th><th>Services</th><th>Regions</th><th>CQC</th><th>Retainer</th><th>🎨 Print</th></tr></thead>
-        <tbody id="providers-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- PROFILE -->
-<div class="screen" id="screen-profile">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
-      <div><div class="header-title" id="profile-title">Provider</div><div class="header-sub" id="profile-sub"></div></div>
-    </div>
-    <div class="header-btn-group">
-      <button class="btn btn-outline btn-sm" onclick="openNoteModal()">+ Note</button>
-      <button class="btn btn-outline btn-sm" onclick="openPastBidModal()">+ Bid</button>
-      <button class="btn btn-primary btn-sm" onclick="openEditModal()">Edit</button>
-    </div>
-  </div>
-  <div class="content">
-    <button class="back-btn" onclick="showScreen('providers')">← Back to Providers</button>
-    <div id="profile-content"><div class="loading">Loading...</div></div>
-  </div>
-</div>
-
-<!-- OPPORTUNITIES -->
-<div class="screen" id="screen-opportunities">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
-      <div><div class="header-title">Opportunities</div><div class="header-sub" id="opps-count"></div></div>
-    </div>
-    <button class="btn btn-primary" onclick="openModal('modal-opportunity')">+ Add</button>
-  </div>
-  <div class="content">
-    <div id="opps-list"><div class="loading">Loading...</div></div>
-  </div>
-</div>
-
-<!-- PIPELINE -->
-<div class="screen" id="screen-pipeline">
-  <div class="header">
-    <div><div class="header-title">Bid Pipeline</div><div class="header-sub">All bids — click Edit to update response or outcome</div></div>
-  </div>
-  <div class="content">
-    <div class="search-bar">
-      <select class="form-select" id="filter-response" onchange="loadPipeline()">
-        <option value="">All responses</option><option value="Awaiting">Awaiting</option><option value="Accepted">Accepted</option><option value="Declined">Declined</option><option value="No Response">No Response</option>
-      </select>
-      <select class="form-select" id="filter-outcome" onchange="loadPipeline()">
-        <option value="">All outcomes</option><option value="Pending">Pending</option><option value="Won">Won 🎉</option><option value="Lost">Lost</option><option value="Withdrawn">Withdrawn</option>
-      </select>
-    </div>
-    <div class="mobile-card-list table-wrap" style="background:#fff;border-radius:10px;overflow:hidden;border:1px solid rgba(62,85,79,0.08)">
-      <table class="table">
-        <thead><tr><th>Opportunity</th><th>Authority</th><th>Provider</th><th>Type</th><th>Deadline</th><th>Value</th><th>Response</th><th>Outcome</th><th>Edit</th></tr></thead>
-        <tbody id="pipeline-tbody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- REVENUE / WINS -->
-<div class="screen" id="screen-revenue">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="hamburger" onclick="openSidebar()" style="color:#3e554f">☰</button>
-      <div><div class="header-title">Wins & Revenue</div><div class="header-sub">Performance tracker</div></div>
-    </div>
-  </div>
-  <div class="content">
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Total Bids Sent</div><div class="stat-value" id="rev-sent">—</div></div>
-      <div class="stat-card"><div class="stat-label">Accepted by Clients</div><div class="stat-value" id="rev-accepted">—</div></div>
-      <div class="stat-card"><div class="stat-label">Won 🎉</div><div class="stat-value" id="rev-won">—</div></div>
-      <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value" id="rev-rate">—</div></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Performance by Provider</div>
-      <table class="table">
-        <thead><tr><th>Provider</th><th>Sent</th><th>Accepted</th><th>Declined</th><th>No Response</th><th>Won</th><th>Lost</th><th>Response Rate</th><th>Win Rate</th></tr></thead>
-        <tbody id="revenue-tbody"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-</div>
 </div>
 
 <script>
-const SURL='https://oyagzfirgdlgmihssuyr.supabase.co';
-const SKEY='sb_publishable_sErw8WmyBQtjaD1XSiaw9w_1vRp7WYw';
-const {createClient}=supabase;
-const db=createClient(SURL,SKEY);
+// ---- CONFIG ----
+const JADE_PASSWORD = 'bidelevate2026';
 
-let allProviders=[];
-let currentProviderId=null;
-let currentProviderData=null;
+const COLORS = {
+  amber:  { bg: '#fef3c7', border: '#f59e0b', hex: '#f59e0b' },
+  blue:   { bg: '#eff6ff', border: '#3b82f6', hex: '#3b82f6' },
+  pink:   { bg: '#fdf2f8', border: '#ec4899', hex: '#ec4899' },
+  teal:   { bg: '#f0fdfa', border: '#14b8a6', hex: '#14b8a6' },
+  purple: { bg: '#f5f3ff', border: '#8b5cf6', hex: '#8b5cf6' },
+  red:    { bg: '#fee2e2', border: '#ef4444', hex: '#ef4444' },
+};
 
-// UTILS
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  var map={dashboard:0,providers:1,profile:1,opportunities:2,pipeline:3,revenue:4};
-  var items=document.querySelectorAll('.nav-item');
-  if(map[id]!==undefined)items[map[id]].classList.add('active');
-  window.scrollTo(0,0);
-  if(id==='providers')loadProviders();
-  if(id==='dashboard')loadDashboard();
-  if(id==='opportunities')loadOpportunities();
-  if(id==='pipeline')loadPipeline();
-  if(id==='revenue')loadRevenue();
+// ---- STATE ----
+let state = {
+  comments: [],
+  selectedColor: { m: 'amber', d: 'amber' },
+  replies: {},
+  currentReview: null,
+};
+
+// ---- STORAGE ----
+function getAllReviews() {
+  try { return JSON.parse(localStorage.getItem('be_reviews') || '{}'); } catch(e) { return {}; }
 }
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});});
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg||'✓ Saved';t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
-function cqcBadge(r){
-  if(!r||r==='N/A — Not applicable')return '<span class="badge badge-grey">N/A</span>';
-  if(r==='Good'||r==='Outstanding')return '<span class="badge badge-green">'+r+'</span>';
-  if(r.includes('Unrated'))return '<span class="badge badge-grey">Unrated</span>';
-  return '<span class="badge badge-amber">'+r+'</span>';
+function saveReview(code, data) {
+  const all = getAllReviews();
+  all[code] = data;
+  localStorage.setItem('be_reviews', JSON.stringify(all));
 }
-function initials(n){return n?n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase():'??'}
-function fmtDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
-function respBadge(r){
-  var map={'Accepted':'badge-green','Declined':'badge-red','Awaiting':'badge-amber','No Response':'badge-grey','Won':'badge-green','Lost':'badge-red','Pending':'badge-amber','Withdrawn':'badge-grey'};
-  var emoji={'Won':' 🎉','Lost':' ✗'};
-  return '<span class="badge '+(map[r]||'badge-grey')+'">'+(r||'—')+(emoji[r]||'')+'</span>';
+function getReview(code) {
+  return getAllReviews()[code] || null;
 }
 
-// MATCHING — core logic
-function matchProviders(opp, providers){
-  var oppServices=(opp.service_type||[]).map(s=>s.toLowerCase().trim());
-  var oppRegions=(opp.regions||[]).map(r=>r.toLowerCase().trim());
-  var cqcReq=opp.cqc_required||'';
-  var ratedOnly=cqcReq.includes('rated providers only');
+// ---- SCREEN ----
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(name + '-screen').classList.add('active');
+}
 
-  return providers.map(p=>{
-    var pServices=(p.services||[]).map(s=>s.toLowerCase().trim());
-    var pRegions=(p.regions||[]).map(r=>r.toLowerCase().trim());
+// ---- RESPONSIVE ----
+function isDesktop() { return window.innerWidth >= 768; }
 
-    // Service match — at least one service overlaps
-    var serviceMatch=oppServices.some(os=>pServices.some(ps=>ps.includes(os)||os.includes(ps)));
+function applyLayout() {
+  const setupDesktop = document.querySelector('.setup-body-desktop');
+  const clientDesktop = document.querySelector('.client-body-desktop');
+  if (isDesktop()) {
+    if (setupDesktop) setupDesktop.style.display = 'grid';
+    if (clientDesktop) clientDesktop.style.display = 'grid';
+    document.querySelectorAll('.setup-tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.client-tab-content').forEach(t => t.style.display = 'none');
+    document.getElementById('client-submit-bar').style.display = 'none';
+  } else {
+    if (setupDesktop) setupDesktop.style.display = 'none';
+    if (clientDesktop) clientDesktop.style.display = 'none';
+    document.getElementById('setup-config-tab').style.display = 'block';
+  }
+}
 
-    // Region match — any word overlap between opp regions and provider regions
-    var regionMatch=oppRegions.some(or=>pRegions.some(pr=>{
-      var orWords=or.split(/\s+/);
-      var prWords=pr.split(/\s+/);
-      return orWords.some(w=>w.length>2&&pr.includes(w))||prWords.some(w=>w.length>2&&or.includes(w));
-    }));
+window.addEventListener('resize', applyLayout);
 
-    // CQC match
-    var cqcOk=true;
-    if(ratedOnly&&p.cqc_applicable){
-      cqcOk=p.cqc_rating==='Good'||p.cqc_rating==='Outstanding';
+// ---- TABS ----
+function switchSetupTab(name, btn) {
+  document.querySelectorAll('.setup-tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('#setup-screen .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('setup-' + name + '-tab').style.display = 'block';
+  btn.classList.add('active');
+}
+
+function switchClientTab(name, btn) {
+  document.querySelectorAll('.client-tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('#client-screen .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('client-' + name + '-tab').style.display = 'block';
+  btn.classList.add('active');
+
+  if (name === 'reply') {
+    document.getElementById('client-submit-bar').style.display = 'block';
+    document.getElementById('reply-tab-badge').textContent = '';
+  } else {
+    document.getElementById('client-submit-bar').style.display = 'none';
+  }
+}
+
+// ---- NOTIF ----
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2500);
+}
+
+// ---- LOGIN ----
+function showClientLogin() {
+  document.getElementById('jade-login').style.display = 'none';
+  document.getElementById('client-login').style.display = 'block';
+}
+function showJadeLogin() {
+  document.getElementById('client-login').style.display = 'none';
+  document.getElementById('jade-login').style.display = 'block';
+  document.getElementById('jade-password').focus();
+}
+function jadeLogin() {
+  const pw = document.getElementById('jade-password').value;
+  if (pw === JADE_PASSWORD) {
+    showScreen('setup');
+    applyLayout();
+  } else {
+    document.getElementById('jade-error').style.display = 'block';
+  }
+}
+function clientLogin() {
+  const code = document.getElementById('client-code').value.trim().toUpperCase();
+  const review = getReview(code);
+  if (review) {
+    loadClientReview(code);
+  } else {
+    document.getElementById('client-error').style.display = 'block';
+  }
+}
+function logout() {
+  document.getElementById('jade-password').value = '';
+  showScreen('login');
+}
+
+document.getElementById('jade-password').addEventListener('keydown', e => { if (e.key === 'Enter') jadeLogin(); });
+document.getElementById('client-code').addEventListener('keydown', e => { if (e.key === 'Enter') clientLogin(); });
+
+// ---- COLOUR PICKER ----
+function selectColor(el, panel) {
+  document.querySelectorAll('#color-row-' + panel + ' .color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedColor[panel] = el.dataset.color;
+}
+
+// ---- ADD COMMENT ----
+function addComment(panel) {
+  const textEl = document.getElementById('comment-text-' + panel);
+  const text = textEl.value.trim();
+  if (!text) { showNotif('Please write a comment first.'); return; }
+
+  const id = 'c' + Date.now();
+  const color = state.selectedColor[panel];
+
+  state.comments.push({
+    id,
+    text,
+    color,
+    time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+  });
+
+  textEl.value = '';
+  renderSetupComments();
+  showNotif('Comment added ✓');
+}
+
+function deleteComment(id) {
+  state.comments = state.comments.filter(c => c.id !== id);
+  renderSetupComments();
+}
+
+function renderSetupComments() {
+  const count = state.comments.length;
+  document.getElementById('count-badge-m').textContent = count;
+  document.getElementById('count-badge-d').textContent = count;
+  document.getElementById('setup-comment-pill').textContent = count + (count === 1 ? ' comment' : ' comments');
+
+  const html = count === 0
+    ? '<div class="empty-state"><div class="empty-icon">💬</div>Add your first comment below</div>'
+    : state.comments.map(c => {
+        const col = COLORS[c.color];
+        return `
+          <div class="comment-card">
+            <div class="comment-accent" style="background:${col.hex};"></div>
+            <div class="comment-inner">
+              <div class="comment-top">
+                <span class="comment-author">BidElevate · ${c.time}</span>
+                <button class="delete-btn" onclick="deleteComment('${c.id}')">✕</button>
+              </div>
+              <div class="comment-body">${c.text}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+  document.getElementById('comments-list-m').innerHTML = html;
+  document.getElementById('comments-list-d').innerHTML = html;
+}
+
+// ---- GENERATE LINK ----
+function getVal(mId, dId) {
+  if (isDesktop()) return document.getElementById(dId).value.trim();
+  return document.getElementById(mId).value.trim();
+}
+
+function generateLink(panel) {
+  const clientName = getVal('client-name-m', 'client-name-d');
+  const tenderRef = getVal('tender-ref-m', 'tender-ref-d');
+  const reviewCode = getVal('review-code-m', 'review-code-d').toUpperCase();
+  const docText = isDesktop()
+    ? document.getElementById('doc-editor-d').innerText
+    : document.getElementById('doc-editor-m').value;
+
+  if (!clientName) { showNotif('Please enter a client name.'); return; }
+  if (!reviewCode) { showNotif('Please set a review code.'); return; }
+  if (state.comments.length === 0) { showNotif('Please add at least one comment.'); return; }
+  if (!docText.trim()) { showNotif('Please paste the draft document.'); return; }
+
+  saveReview(reviewCode, {
+    clientName,
+    tenderRef,
+    reviewCode,
+    docText,
+    comments: JSON.parse(JSON.stringify(state.comments)),
+    replies: {},
+    submitted: false,
+  });
+
+  const link = window.location.href.split('?')[0] + '?review=' + reviewCode;
+
+  ['m','d'].forEach(p => {
+    document.getElementById('link-display-' + p).textContent = link;
+    document.getElementById('gen-bar-' + p).style.display = 'none';
+    document.getElementById('link-bar-' + p).style.display = 'block';
+  });
+
+  showNotif('Link generated! Share the code: ' + reviewCode);
+}
+
+function copyLink(panel) {
+  const text = document.getElementById('link-display-' + panel).textContent;
+  navigator.clipboard.writeText(text).then(() => showNotif('Link copied ✓'));
+}
+
+// ---- CLIENT REVIEW ----
+function loadClientReview(code) {
+  const review = getReview(code);
+  if (!review) return;
+
+  state.currentReview = review;
+  state.replies = {};
+
+  const title = review.clientName + ' — ' + review.tenderRef;
+  const meta = 'Sent by BidElevate · Please reply to all comments below';
+
+  ['m','d'].forEach(s => {
+    const titleEl = document.getElementById('client-doc-title-' + s);
+    const metaEl = document.getElementById('client-doc-meta-' + s);
+    const contentEl = document.getElementById('client-doc-content-' + s);
+    if (titleEl) titleEl.textContent = title;
+    if (metaEl) metaEl.textContent = meta;
+    if (contentEl) contentEl.textContent = review.docText;
+  });
+
+  renderClientComments(review);
+  showScreen('client');
+  applyLayout();
+  updateProgress(review);
+
+  // show reply badge on mobile tab
+  const badge = document.getElementById('reply-tab-badge');
+  if (badge) badge.textContent = review.comments.length;
+}
+
+function renderClientComments(review) {
+  const html = review.comments.map(c => {
+    const col = COLORS[c.color];
+    return `
+      <div class="client-comment-card">
+        <div class="comment-accent" style="background:${col.hex};"></div>
+        <div class="comment-inner">
+          <div class="comment-top">
+            <span class="comment-author">BidElevate · ${c.time}</span>
+            <span class="required-indicator">
+              <span class="req-dot" id="dot-${c.id}"></span>
+              <span class="req-label" id="req-label-${c.id}">Required</span>
+            </span>
+          </div>
+          <div class="comment-body">${c.text}</div>
+          <textarea
+            class="client-reply-area"
+            id="reply-${c.id}"
+            placeholder="Type your reply here…"
+            oninput="onReplyInput('${c.id}')"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>`;
+  }).join('');
+
+  ['m','d'].forEach(s => {
+    const el = document.getElementById('client-comments-' + s);
+    if (el) el.innerHTML = html || '<div class="empty-state">No comments on this draft.</div>';
+  });
+}
+
+function onReplyInput(id) {
+  const val = document.getElementById('reply-' + id).value.trim();
+  const dot = document.getElementById('dot-' + id);
+  const label = document.getElementById('req-label-' + id);
+  const textarea = document.getElementById('reply-' + id);
+
+  if (val.length > 0) {
+    state.replies[id] = val;
+    if (dot) { dot.classList.add('done'); }
+    if (label) { label.textContent = 'Done'; label.classList.add('done'); }
+    textarea.classList.add('filled');
+  } else {
+    delete state.replies[id];
+    if (dot) dot.classList.remove('done');
+    if (label) { label.textContent = 'Required'; label.classList.remove('done'); }
+    textarea.classList.remove('filled');
+  }
+
+  updateProgress(state.currentReview);
+}
+
+function updateProgress(review) {
+  const total = review.comments.length;
+  const done = Object.keys(state.replies).length;
+  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  const allDone = done === total && total > 0;
+
+  ['m','d'].forEach(s => {
+    const textEl = document.getElementById('progress-text-' + s);
+    const fillEl = document.getElementById('progress-fill-' + s);
+    const btn = document.getElementById('submit-btn-' + s);
+    const hint = document.getElementById('submit-hint-' + s);
+
+    if (textEl) textEl.textContent = done + ' / ' + total;
+    if (fillEl) fillEl.style.width = pct + '%';
+
+    if (btn) {
+      btn.disabled = !allDone;
+      btn.textContent = allDone ? 'Submit all replies →' : 'Reply to all comments to submit';
     }
-
-    var reasons=[];
-    if(serviceMatch)reasons.push('✓ Service match');else reasons.push('✗ Service mismatch');
-    if(regionMatch)reasons.push('✓ Region match');else reasons.push('✗ Region mismatch');
-    if(p.cqc_applicable&&ratedOnly){if(cqcOk)reasons.push('✓ CQC rated');else reasons.push('✗ CQC not rated');}
-    else if(!p.cqc_applicable)reasons.push('ℹ CQC N/A');
-    else reasons.push('✓ CQC ok');
-
-    return {provider:p,serviceMatch,regionMatch,cqcOk,strong:serviceMatch&&regionMatch&&cqcOk,reasons:reasons.join(' · ')};
-  }).sort((a,b)=>b.strong-a.strong);
-}
-
-// DASHBOARD
-async function loadDashboard(){
-  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  var [{data:providers},{data:opps},{data:sends}]=await Promise.all([
-    db.from('providers').select('*'),
-    db.from('opportunities').select('*').eq('status','Active'),
-    db.from('send_log').select('*').eq('response','Awaiting')
-  ]);
-  allProviders=providers||[];
-  document.getElementById('stat-providers').textContent=allProviders.length;
-  document.getElementById('stat-retainers').textContent=allProviders.filter(p=>p.retainer).length;
-  document.getElementById('stat-opps').textContent=(opps||[]).length;
-  document.getElementById('stat-awaiting').textContent=(sends||[]).length;
-
-  var needPrint=allProviders.filter(p=>!p.botanical_print_sent);
-  var hasPrint=allProviders.filter(p=>p.botanical_print_sent);
-  document.getElementById('print-reminders').innerHTML=
-    (hasPrint.map(p=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(62,85,79,0.06)"><span style="font-size:13px">'+p.organisation_name+'</span><span class="badge badge-green">✓ Print sent '+fmtDate(p.botanical_print_date)+'</span></div>').join(''))+
-    (needPrint.map(p=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(62,85,79,0.06)"><span style="font-size:13px">'+p.organisation_name+'</span><span class="badge badge-grey">Pending first win</span></div>').join(''));
-
-  document.getElementById('dash-providers').innerHTML=allProviders.slice(0,6).map(p=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(62,85,79,0.05);cursor:pointer" onclick="openProfile('${p.id}')">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="profile-avatar" style="width:32px;height:32px;font-size:11px">${initials(p.organisation_name)}</div>
-        <div><div style="font-size:13px;font-weight:500">${p.organisation_name}</div><div style="font-size:11px;color:#888">${p.contact_name}</div></div>
-      </div>
-      ${p.retainer?'<span class="badge badge-green">Retainer</span>':'<span class="badge badge-grey">Non-retainer</span>'}
-    </div>`).join('');
-}
-
-// PROVIDERS LIST
-async function loadProviders(){
-  var {data}=await db.from('providers').select('*').order('organisation_name');
-  allProviders=data||[];
-  document.getElementById('providers-count').textContent=allProviders.length+' providers';
-  renderProviders(allProviders);
-}
-function renderProviders(list){
-  document.getElementById('providers-tbody').innerHTML=list.map(p=>`
-    <tr onclick="openProfile('${p.id}')">
-      <td><strong>${p.organisation_name}</strong><br><span style="font-size:11px;color:#888">${p.contact_name} · ${p.email||''}</span></td>
-      <td>${(p.services||[]).map(s=>'<span class="tag">'+s+'</span>').join('')}</td>
-      <td style="font-size:11px;color:#555">${(p.regions||[]).join(', ')}</td>
-      <td>${cqcBadge(p.cqc_rating)}</td>
-      <td>${p.retainer?'<span class="badge badge-green">Yes</span>':'<span class="badge badge-grey">No</span>'}</td>
-      <td>${p.botanical_print_sent?'<span class="badge badge-green">✓ Sent</span>':'<span class="badge badge-grey">Pending</span>'}</td>
-    </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:#888">No providers found</td></tr>';
-}
-function filterProviders(){
-  var q=document.getElementById('provider-search').value.toLowerCase();
-  var r=document.getElementById('filter-retainer').value;
-  renderProviders(allProviders.filter(p=>{
-    var m=!q||(p.organisation_name||'').toLowerCase().includes(q)||(p.contact_name||'').toLowerCase().includes(q)||(p.email||'').toLowerCase().includes(q);
-    var rm=!r||(r==='true'&&p.retainer)||(r==='false'&&!p.retainer);
-    return m&&rm;
-  }));
-}
-
-// PROFILE
-async function openProfile(id){
-  currentProviderId=id;
-  showScreen('profile');
-  document.getElementById('profile-content').innerHTML='<div class="loading">Loading...</div>';
-  var [{data:p},{data:notes},{data:sends}]=await Promise.all([
-    db.from('providers').select('*').eq('id',id).single(),
-    db.from('meeting_notes').select('*').eq('provider_id',id).order('note_date',{ascending:false}),
-    db.from('send_log').select('*,opportunities(name,opportunity_type,deadline)').eq('provider_id',id).order('sent_at',{ascending:false})
-  ]);
-  currentProviderData=p;
-  document.getElementById('profile-title').textContent=p.organisation_name;
-  document.getElementById('profile-sub').textContent=(p.contact_name||'')+(p.email?' · '+p.email:'');
-
-  var warns='';
-  if(p.cqc_applicable&&p.cqc_rating&&p.cqc_rating.includes('Unrated'))warns+='<div class="flag-banner">⚠️ Unrated CQC — cannot bid for tenders requiring rated providers</div>';
-  if(!p.cqc_applicable)warns+='<div class="flag-info">ℹ️ CQC registration not applicable for this provider</div>';
-  if(p.botanical_print_sent)warns+='<div class="flag-success">🎨 Botanical print sent on '+fmtDate(p.botanical_print_date)+'</div>';
-  else warns+='<div class="flag-banner">🎨 No botanical print yet — mark as sent in Edit Profile when a win is confirmed</div>';
-
-  var won=(sends||[]).filter(s=>s.outcome==='Won').length;
-  var notesHtml=(notes||[]).length?notes.map(n=>'<div class="note-item"><div class="note-date">'+fmtDate(n.note_date)+' — '+n.call_type+'</div><div class="note-text">'+n.notes+'</div></div>').join(''):'<div style="font-size:12px;color:#888;padding:8px 0">No notes yet.</div>';
-  var sendsHtml=(sends||[]).length?`<table class="table"><thead><tr><th>Opportunity</th><th>Sent</th><th>Response</th><th>Outcome</th><th></th></tr></thead><tbody>`+
-    sends.map(s=>`<tr>
-      <td>${s.opportunities?s.opportunities.name:'Unknown'}</td>
-      <td style="font-size:11px">${fmtDate(s.sent_at)}</td>
-      <td>${respBadge(s.response)}</td>
-      <td>${respBadge(s.outcome||'Pending')}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="openEditSend('${s.id}','${(s.opportunities?s.opportunities.name:'').replace(/'/g,"\\'")}','${s.response||'Awaiting'}','${s.outcome||'Pending'}','${s.bid_value||''}','${s.notes||''}')">Edit</button><button class="btn btn-sm" style="background:#fee2e2;color:#c0392b;border:none;margin-left:4px" onclick="deleteSendLog('${s.id}')">&#128465;</button></td>
-    </tr>`).join('')+'</tbody></table>':'<div style="font-size:12px;color:#888;padding:8px 0">No opportunities logged yet. Use "+ Log Past Bid" to add history.</div>';
-
-  document.getElementById('profile-content').innerHTML=`
-    ${warns}
-    <div style="background:#fff;border-radius:10px;padding:20px;border:1px solid rgba(62,85,79,0.08);margin-bottom:16px">
-      <div style="display:flex;align-items:flex-start;gap:16px">
-        <div class="profile-avatar">${initials(p.organisation_name)}</div>
-        <div style="flex:1">
-          <div style="font-size:1.1rem;font-weight:600;color:#2e3f3a;margin-bottom:4px">${p.organisation_name}</div>
-          <div style="font-size:12px;color:#888;line-height:1.8">${p.contact_name||''} ${p.email?'· '+p.email:''} ${p.phone?'· '+p.phone:''}</div>
-          <div style="margin-top:6px">${(p.services||[]).map(s=>'<span class="tag">'+s+'</span>').join('')} ${cqcBadge(p.cqc_rating)} ${p.retainer?'<span class="badge badge-green" style="margin-left:4px">Retainer</span>':''}</div>
-          <div style="margin-top:6px;font-size:12px;color:#888"><strong>Regions:</strong> ${(p.regions||[]).join(', ')}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:11px;color:#888">Bids sent</div>
-          <div style="font-size:1.8rem;font-weight:600;color:#3e554f">${(sends||[]).length}</div>
-          <div style="font-size:11px;color:#888;margin-top:4px">Won: ${won} 🎉</div>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">🔐 Portal Logins <button class="btn btn-outline btn-sm" onclick="openPortalModal()">+ Add Portal</button></div>
-      <div id="portals-list-${p.id}"><div style="font-size:12px;color:#888">Loading portals...</div></div>
-    </div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Meeting Notes <button class="btn btn-outline btn-sm" onclick="openNoteModal()">+ Add</button></div>
-        ${notesHtml}
-      </div>
-      <div class="card">
-        <div class="card-title">Opportunity History <button class="btn btn-outline btn-sm" onclick="openPastBidModal()">+ Log Past Bid</button></div>
-        ${sendsHtml}
-      </div>
-    </div>`;
-}
-
-// SAVE PROVIDER
-async function saveProvider(){
-  var name=document.getElementById('p-name').value.trim();
-  if(!name){alert('Please enter an organisation name');return;}
-  var {error}=await db.from('providers').insert({
-    organisation_name:name,contact_name:document.getElementById('p-contact').value,
-    email:document.getElementById('p-email').value,phone:document.getElementById('p-phone').value,
-    services:document.getElementById('p-services').value.split(',').map(s=>s.trim()).filter(Boolean),
-    regions:document.getElementById('p-regions').value.split(',').map(s=>s.trim()).filter(Boolean),
-    cqc_rating:document.getElementById('p-cqc').value,
-    cqc_applicable:document.getElementById('p-cqc').value!=='N/A — Not applicable',
-    retainer:document.getElementById('p-retainer').value==='true',
-    notes:document.getElementById('p-notes').value
-  });
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-provider');toast('✓ Provider saved!');
-  ['p-name','p-contact','p-email','p-phone','p-services','p-regions','p-notes'].forEach(id=>document.getElementById(id).value='');
-  loadProviders();
-}
-
-// SAVE OPPORTUNITY
-async function saveOpportunity(){
-  var name=document.getElementById('o-name').value.trim();
-  if(!name){alert('Please enter a name');return;}
-  var {error}=await db.from('opportunities').insert({
-    name,authority:document.getElementById('o-authority').value,
-    reference:document.getElementById('o-ref').value,
-    opportunity_type:document.getElementById('o-type').value,
-    deadline:document.getElementById('o-deadline').value||null,
-    service_type:document.getElementById('o-services').value.split(',').map(s=>s.trim()).filter(Boolean),
-    regions:document.getElementById('o-region').value.split(',').map(s=>s.trim()).filter(Boolean),
-    cqc_required:document.getElementById('o-cqc').value,
-    estimated_value:document.getElementById('o-value').value,
-    notes:document.getElementById('o-notes').value,
-    source_link:document.getElementById('o-link').value,status:'Active'
-  });
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-opportunity');toast('✓ Opportunity saved!');
-  ['o-name','o-authority','o-ref','o-services','o-region','o-value','o-notes','o-link','o-deadline'].forEach(id=>document.getElementById(id).value='');
-  showScreen('opportunities');
-}
-
-// NOTES
-function openNoteModal(){document.getElementById('n-date').value=new Date().toISOString().split('T')[0];document.getElementById('n-notes').value='';openModal('modal-note');}
-async function saveNote(){
-  if(!currentProviderId)return;
-  var notes=document.getElementById('n-notes').value.trim();
-  if(!notes){alert('Please add notes');return;}
-  var {error}=await db.from('meeting_notes').insert({provider_id:currentProviderId,note_date:document.getElementById('n-date').value,call_type:document.getElementById('n-type').value,notes});
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-note');toast('✓ Note saved!');openProfile(currentProviderId);
-}
-
-// PAST BID
-function openPastBidModal(){document.getElementById('pb-sent').value=new Date().toISOString().split('T')[0];['pb-name','pb-authority','pb-value','pb-notes'].forEach(id=>document.getElementById(id).value='');openModal('modal-past-bid');}
-async function savePastBid(){
-  if(!currentProviderId)return;
-  var name=document.getElementById('pb-name').value.trim();
-  if(!name){alert('Please enter opportunity name');return;}
-  // Create a past opportunity record
-  var deadline=document.getElementById('pb-deadline').value;
-  var {data:opp,error:oe}=await db.from('opportunities').insert({
-    name,authority:document.getElementById('pb-authority').value,
-    opportunity_type:document.getElementById('pb-type').value,
-    estimated_value:document.getElementById('pb-value').value,
-    deadline:deadline||null,
-    status:'Closed',
-    is_past_bid:true
-  }).select().single();
-  if(oe){alert('Error: '+oe.message);return;}
-  // Log the send
-  var {error:se}=await db.from('send_log').insert({
-    provider_id:currentProviderId,opportunity_id:opp.id,
-    sent_at:document.getElementById('pb-sent').value,
-    response:document.getElementById('pb-response').value,
-    outcome:document.getElementById('pb-outcome').value,
-    bid_value:document.getElementById('pb-value').value,
-    notes:document.getElementById('pb-notes').value
-  });
-  if(se){alert('Error: '+se.message);return;}
-  closeModal('modal-past-bid');toast('✓ Past bid saved!');openProfile(currentProviderId);
-}
-
-// EDIT SEND LOG
-function openEditSend(id,name,response,outcome,value,notes){
-  document.getElementById('es-id').value=id;
-  document.getElementById('es-name').value=name;
-  document.getElementById('es-response').value=response||'Awaiting';
-  document.getElementById('es-outcome').value=outcome||'Pending';
-  document.getElementById('es-value').value=value||'';
-  document.getElementById('es-notes').value=notes||'';
-  document.getElementById('es-date').value=new Date().toISOString().split('T')[0];
-  openModal('modal-edit-send');
-}
-async function updateSendLog(){
-  var id=document.getElementById('es-id').value;
-  var {error}=await db.from('send_log').update({
-    response:document.getElementById('es-response').value,
-    outcome:document.getElementById('es-outcome').value,
-    bid_value:document.getElementById('es-value').value,
-    notes:document.getElementById('es-notes').value,
-    response_date:document.getElementById('es-date').value
-  }).eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-edit-send');toast('✓ Updated!');
-  if(currentProviderId){openProfile(currentProviderId);}else{loadPipeline();}
-}
-
-// EDIT PROVIDER
-function openEditModal(){
-  if(!currentProviderData)return;
-  var p=currentProviderData;
-  document.getElementById('ep-id').value=p.id;
-  document.getElementById('ep-name').value=p.organisation_name||'';
-  document.getElementById('ep-contact').value=p.contact_name||'';
-  document.getElementById('ep-email').value=p.email||'';
-  document.getElementById('ep-phone').value=p.phone||'';
-  document.getElementById('ep-services').value=(p.services||[]).join(', ');
-  document.getElementById('ep-regions').value=(p.regions||[]).join(', ');
-  document.getElementById('ep-cqc').value=p.cqc_rating||'Unrated — Not yet inspected';
-  document.getElementById('ep-retainer').value=p.retainer?'true':'false';
-  document.getElementById('ep-print').value=p.botanical_print_sent?'true':'false';
-  document.getElementById('ep-print-date').value=p.botanical_print_date||'';
-  openModal('modal-edit-provider');
-}
-async function updateProvider(){
-  var id=document.getElementById('ep-id').value;
-  var printSent=document.getElementById('ep-print').value==='true';
-  var {error}=await db.from('providers').update({
-    organisation_name:document.getElementById('ep-name').value,
-    contact_name:document.getElementById('ep-contact').value,
-    email:document.getElementById('ep-email').value,
-    phone:document.getElementById('ep-phone').value,
-    services:document.getElementById('ep-services').value.split(',').map(s=>s.trim()).filter(Boolean),
-    regions:document.getElementById('ep-regions').value.split(',').map(s=>s.trim()).filter(Boolean),
-    cqc_rating:document.getElementById('ep-cqc').value,
-    cqc_applicable:document.getElementById('ep-cqc').value!=='N/A — Not applicable',
-    retainer:document.getElementById('ep-retainer').value==='true',
-    botanical_print_sent:printSent,
-    botanical_print_date:printSent?(document.getElementById('ep-print-date').value||null):null
-  }).eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-edit-provider');toast('✓ Profile updated!');openProfile(id);
-}
-
-// OPPORTUNITIES with matching
-async function loadOpportunities(){
-  var [{data:opps},{data:providers},{data:allSends}]=await Promise.all([
-    db.from('opportunities').select('*').eq('is_past_bid',false).order('deadline',{ascending:true}),
-    db.from('providers').select('*'),
-    db.from('send_log').select('opportunity_id,provider_id,response')
-  ]);
-  allProviders=providers||[];
-  // Build a set of already-actioned provider+opportunity combos
-  var actioned={};
-  (allSends||[]).forEach(function(s){
-    var key=s.opportunity_id+'_'+s.provider_id;
-    actioned[key]=s.response;
-  });
-  document.getElementById('opps-count').textContent=(opps||[]).length+' opportunities';
-  if(!(opps||[]).length){document.getElementById('opps-list').innerHTML='<div style="text-align:center;padding:40px;color:#888">No opportunities yet. Click "+ Add Opportunity".</div>';return;}
-  document.getElementById('opps-list').innerHTML=opps.map(o=>{
-    var matches=matchProviders(o,allProviders);
-    // Filter out providers already sent to or marked not sending for this opportunity
-    var filtered=matches.filter(m=>!actioned[o.id+'_'+m.provider.id]);
-    var strong=filtered.filter(m=>m.strong);
-    var weak=filtered.filter(m=>!m.strong&&(m.serviceMatch||m.regionMatch));
-    // Count actioned
-    var actionedCount=(allSends||[]).filter(s=>s.opportunity_id===o.id).length;
-    return `<div class="opp-row">
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:#2e3f3a;margin-bottom:4px">${o.name}</div>
-        <div style="font-size:12px;color:#888;margin-bottom:8px">${o.authority||''} ${o.reference?'('+o.reference+')':''} · <span class="badge badge-blue">${o.opportunity_type}</span> · ${(o.service_type||[]).join(', ')} · ${(o.regions||[]).join(', ')}</div>
-        ${o.notes?'<div style="font-size:11px;color:#888;margin-bottom:8px">'+o.notes+'</div>':''}
-        <div style="margin-top:8px">
-          ${actionedCount?'<div style="font-size:11px;color:#888;margin-bottom:6px">'+actionedCount+' provider(s) already actioned (sent or skipped)</div>':''}
-          <div style="font-size:11px;font-weight:600;color:#3e554f;margin-bottom:6px">✅ Strong matches (${strong.length}):</div>
-          ${strong.length?strong.map(m=>`<div class="match-card" style="flex-wrap:wrap"><div><div style="font-size:13px;font-weight:500">${m.provider.organisation_name}</div><div style="font-size:11px;color:#3e554f;margin-top:2px">${m.reasons}</div></div><div style="display:flex;gap:6px;margin-top:4px"><button class="btn btn-primary btn-sm" onclick="logSend('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}','${encodeURIComponent(o.name)}')">Log Send</button><button class="btn btn-sm" style="background:#f0f0f0;color:#555;border:none" onclick="logNotSendingEnc('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}')">Not sending</button></div></div>`).join(''):'<div style="font-size:12px;color:#888;padding:6px 0">No strong matches — check service types and regions</div>'}
-          ${weak.length?'<div style="font-size:11px;font-weight:600;color:#888;margin:8px 0 6px">Partial matches ('+weak.length+'):</div>'+weak.map(m=>`<div class="match-card weak" style="flex-wrap:wrap"><div><div style="font-size:13px;font-weight:500">${m.provider.organisation_name}</div><div style="font-size:11px;color:#888;margin-top:2px">${m.reasons}</div></div><div style="display:flex;gap:6px;margin-top:4px"><button class="btn btn-outline btn-sm" onclick="logSend('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}','${encodeURIComponent(o.name)}')">Send anyway</button><button class="btn btn-sm" style="background:#f0f0f0;color:#555;border:none" onclick="logNotSendingEnc('${o.id}','${m.provider.id}','${encodeURIComponent(m.provider.organisation_name)}')">Not sending</button></div></div>`).join(''):''}
-        </div>
-      </div>
-      <div style="flex-shrink:0;text-align:right;margin-left:16px">
-        <div style="font-size:13px;font-weight:500;color:#c0392b">${o.deadline?fmtDate(o.deadline):'No deadline'}</div>
-        <div style="font-size:11px;color:#888;margin-top:4px">${o.estimated_value||''}</div>
-        ${o.source_link?'<a href="'+o.source_link+'" target="_blank" style="font-size:11px;color:#3e554f;display:block;margin-top:4px">View notice →</a>':''}
-        <button class="btn btn-sm" style="margin-top:8px;background:#fee2e2;color:#c0392b;border:none" onclick="deleteOpportunity('${o.id}','${o.name.replace(/'/g,"\\'")}')">🗑 Delete</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function logSend(oppId,providerId,providerName,oppName){
-  if(!confirm('Log that "'+oppName+'" was sent to '+providerName+'?'))return;
-  var {error}=await db.from('send_log').insert({opportunity_id:oppId,provider_id:providerId,sent_at:new Date().toISOString(),response:'Awaiting',outcome:'Pending'});
-  if(error){alert('Error: '+error.message);return;}
-  toast('✓ Logged as sent to '+providerName);loadOpportunities();
-}
-
-// PIPELINE
-async function loadPipeline(){
-  var rFilter=document.getElementById('filter-response').value;
-  var oFilter=document.getElementById('filter-outcome').value;
-  var q=db.from('send_log').select('*,providers(organisation_name),opportunities(name,opportunity_type,deadline,estimated_value,authority)').order('sent_at',{ascending:false});
-  if(rFilter)q=q.eq('response',rFilter);
-  if(oFilter)q=q.eq('outcome',oFilter);
-  var {data}=await q;
-  document.getElementById('pipeline-tbody').innerHTML=(data||[]).length?data.map(s=>{
-    var oppName=(s.opportunities?s.opportunities.name:'—');
-    var oppType=(s.opportunities?s.opportunities.opportunity_type:'—');
-    var oppDeadline=(s.opportunities&&s.opportunities.deadline?fmtDate(s.opportunities.deadline):'—');
-    var oppValue=s.bid_value||(s.opportunities?s.opportunities.estimated_value:'')||'—';
-    var safeId=s.id;
-    var safeName=oppName.replace(/'/g,"\\'").replace(/"/g,'\\"');
-    var safeNotes=(s.notes||'').replace(/'/g,"\\'").replace(/"/g,'\\"');
-    return `<tr>
-      <td><strong>${oppName}</strong></td>
-      <td style="font-size:12px;color:#888">${s.opportunities?s.opportunities.authority||'—':'—'}</td>
-      <td>${s.providers?s.providers.organisation_name:'—'}</td>
-      <td><span class="badge badge-blue">${oppType}</span></td>
-      <td style="font-size:12px">${oppDeadline}</td>
-      <td>${oppValue}</td>
-      <td>${respBadge(s.response)}</td>
-      <td>${respBadge(s.outcome||'Pending')}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="openEditSend('${safeId}','${safeName}','${s.response||'Awaiting'}','${s.outcome||'Pending'}','${s.bid_value||''}','${safeNotes}')">Edit</button></td>
-    </tr>`;}).join(''):'<tr><td colspan="9" style="text-align:center;padding:20px;color:#888">No bids found</td></tr>';
-}
-
-// REVENUE
-async function loadRevenue(){
-  var [{data:providers},{data:sends}]=await Promise.all([
-    db.from('providers').select('*'),
-    db.from('send_log').select('*')
-  ]);
-  var total=sends||[];
-  document.getElementById('rev-sent').textContent=total.length;
-  document.getElementById('rev-accepted').textContent=total.filter(s=>s.response==='Accepted').length;
-  var won=total.filter(s=>s.outcome==='Won').length;
-  document.getElementById('rev-won').textContent=won;
-  var accepted=total.filter(s=>s.response==='Accepted').length;
-  document.getElementById('rev-rate').textContent=accepted?Math.round(won/accepted*100)+'%':'—';
-
-  var byP={};
-  (providers||[]).forEach(p=>{byP[p.id]={name:p.organisation_name,sent:0,accepted:0,declined:0,noresponse:0,won:0,lost:0};});
-  total.forEach(s=>{
-    if(!byP[s.provider_id])return;
-    byP[s.provider_id].sent++;
-    if(s.response==='Accepted')byP[s.provider_id].accepted++;
-    else if(s.response==='Declined')byP[s.provider_id].declined++;
-    else byP[s.provider_id].noresponse++;
-    if(s.outcome==='Won')byP[s.provider_id].won++;
-    if(s.outcome==='Lost')byP[s.provider_id].lost++;
+    if (hint) {
+      hint.textContent = allDone
+        ? 'All comments replied to — ready to submit.'
+        : 'You must reply to every comment before submitting.';
+      hint.style.color = allDone ? 'var(--green)' : 'var(--text-muted)';
+    }
   });
 
-  document.getElementById('revenue-tbody').innerHTML=Object.values(byP).map(p=>{
-    var rr=p.sent?Math.round((p.accepted/p.sent)*100)+'%':'—';
-    var wr=p.accepted?Math.round((p.won/p.accepted)*100)+'%':'—';
-    return `<tr>
-      <td><strong>${p.name}</strong></td>
-      <td>${p.sent}</td><td>${p.accepted}</td><td>${p.declined}</td><td>${p.noresponse}</td>
-      <td>${p.won?'<span class="badge badge-green">'+p.won+' 🎉</span>':p.won}</td>
-      <td>${p.lost?'<span class="badge badge-red">'+p.lost+'</span>':p.lost}</td>
-      <td>${p.sent?'<span class="badge '+(parseInt(rr)>=60?'badge-green':'badge-amber')+'">'+rr+'</span>':'<span class="badge badge-grey">—</span>'}</td>
-      <td>${p.accepted?'<span class="badge '+(parseInt(wr)>=60?'badge-green':'badge-amber')+'">'+wr+'</span>':'<span class="badge badge-grey">—</span>'}</td>
-    </tr>`;
-  }).join('');
+  const pill = document.getElementById('client-progress-pill');
+  if (pill) {
+    pill.textContent = done + ' of ' + total + ' replied';
+    pill.className = 'pill ' + (allDone ? 'pill-green' : 'pill-amber');
+  }
+
+  // update reply tab badge
+  const badge = document.getElementById('reply-tab-badge');
+  if (badge) badge.textContent = total - done > 0 ? total - done : '';
 }
 
-// PORTAL LOGINS
-function openPortalModal(){
-  ['portal-username','portal-password','portal-url','portal-notes','portal-name-custom'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('portal-name-select').value='Procontract';
-  document.getElementById('portal-custom-group').style.display='none';
-  openModal('modal-portal');
-}
-function portalNameChange(sel){
-  document.getElementById('portal-custom-group').style.display=sel.value==='Other'?'block':'none';
-}
-async function savePortal(){
-  if(!currentProviderId)return;
-  var nameVal=document.getElementById('portal-name-select').value;
-  if(nameVal==='Other')nameVal=document.getElementById('portal-name-custom').value.trim();
-  if(!nameVal){alert('Please enter a portal name');return;}
-  var {error}=await db.from('portal_logins').insert({
-    provider_id:currentProviderId,
-    portal_name:nameVal,
-    username:document.getElementById('portal-username').value,
-    password:document.getElementById('portal-password').value,
-    portal_url:document.getElementById('portal-url').value,
-    notes:document.getElementById('portal-notes').value
-  });
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-portal');toast('✓ Portal saved!');
-  loadPortals(currentProviderId);
-}
-async function loadPortals(providerId){
-  var el=document.getElementById('portals-list-'+providerId);
-  if(!el)return;
-  var {data,error}=await db.from('portal_logins').select('*').eq('provider_id',providerId).order('portal_name');
-  if(error||!(data||[]).length){el.innerHTML='<div style="font-size:12px;color:#888">No portals added yet.</div>';return;}
-  var visible={};
-  el.innerHTML=data.map(p=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(62,85,79,0.06)">
-      <div>
-        <div style="font-size:13px;font-weight:500">${p.portal_name} ${p.portal_url?'<a href="'+p.portal_url+'" target="_blank" style="font-size:11px;color:#3e554f">↗</a>':''}</div>
-        <div style="font-size:12px;color:#888;margin-top:2px">${p.username||''} · <span id="pw-${p.id}">••••••••</span></div>
-        ${p.notes?'<div style="font-size:11px;color:#888;margin-top:2px">'+p.notes+'</div>':''}
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button class="btn btn-outline btn-sm" onclick="togglePw('${p.id}','${(p.password||'').replace(/'/g,"\\'")}')">Show</button>
-        <button class="btn btn-sm" style="background:#fee2e2;color:#c0392b;border:none" onclick="deletePortal('${p.id}')">🗑</button>
-      </div>
-    </div>`).join('');
-}
-function togglePw(id,pw){
-  var el=document.getElementById('pw-'+id);
-  if(el)el.textContent=el.textContent==='••••••••'?pw:'••••••••';
-}
-async function deletePortal(id){
-  if(!confirm('Remove this portal login?'))return;
-  await db.from('portal_logins').delete().eq('id',id);
-  toast('✓ Portal removed');
-  loadPortals(currentProviderId);
+function submitReview() {
+  const review = state.currentReview;
+  const total = review.comments.length;
+  const done = Object.keys(state.replies).length;
+  if (done < total) { showNotif('Please reply to all comments first.'); return; }
+
+  review.replies = Object.assign({}, state.replies);
+  review.submitted = true;
+  review.submittedAt = new Date().toLocaleString('en-GB');
+  saveReview(review.reviewCode, review);
+
+  showScreen('success');
 }
 
-// DELETE PROVIDER
-async function deleteProvider(){
-  var id=document.getElementById('ep-id').value;
-  var name=document.getElementById('ep-name').value;
-  if(!confirm('Permanently delete '+name+'? This removes ALL their bids, notes and portal logins. This cannot be undone.'))return;
-  if(!confirm('Final confirmation — delete '+name+'?'))return;
-  await db.from('send_log').delete().eq('provider_id',id);
-  await db.from('meeting_notes').delete().eq('provider_id',id);
-  await db.from('portal_logins').delete().eq('provider_id',id);
-  var {error}=await db.from('providers').delete().eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-edit-provider');
-  toast('Provider deleted');
-  showScreen('providers');
-}
+// ---- PWA INSTALL ----
+let deferredPrompt = null;
 
-// LOG NOT SENDING
-async function logNotSending(oppId, providerId, providerName){
-  var reason=prompt('Why not sending to '+providerName+'? (optional — press OK to skip)');
-  if(reason===null)return; // cancelled
-  var {error}=await db.from('send_log').insert({
-    opportunity_id:oppId,
-    provider_id:providerId,
-    sent_at:new Date().toISOString(),
-    response:'Not sending',
-    outcome:'N/A',
-    notes:reason||'Decision made not to send'
-  });
-  if(error){alert('Error: '+error.message);return;}
-  toast('Logged — not sending to '+providerName);
-  loadOpportunities();
-}
-
-// ARCHIVE OPPORTUNITY
-async function archiveOpportunity(id, name){
-  if(!confirm('Archive "'+name+'"? It will be removed from the active list but all send history is kept.'))return;
-  var {error}=await db.from('opportunities').update({status:'Archived'}).eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
-  toast('Opportunity archived');
-  loadOpportunities();
-}
-
-// DELETE OPPORTUNITY
-async function deleteOpportunity(id, name){
-  if(!confirm('Delete "'+name+'"? This removes it from the opportunities list only — any provider history linked to it stays intact.'))return;
-  var {error}=await db.from('opportunities').delete().eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
-  toast('✓ Opportunity deleted');
-  loadOpportunities();
-}
-
-// DELETE SEND LOG ENTRY
-async function deleteSendLog(id){
-  if(!confirm('Remove this bid record? This cannot be undone.'))return;
-  var {error}=await db.from('send_log').delete().eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
-  toast('✓ Bid record removed');
-  if(currentProviderId){openProfile(currentProviderId);}else{loadPipeline();}
-}
-
-// SIDEBAR MOBILE
-function openSidebar(){
-  document.querySelector('.sidebar').classList.add('open');
-  document.getElementById('sidebarOverlay').classList.add('open');
-}
-function closeSidebar(){
-  document.querySelector('.sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
-}
-// Close sidebar when nav item tapped on mobile
-document.querySelectorAll('.nav-item').forEach(function(item){
-  item.addEventListener('click',function(){
-    if(window.innerWidth<=768)closeSidebar();
-  });
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
 });
 
-// NOT SENDING
-var _nsOppId=null,_nsProviderId=null,_nsProviderName=null;
-function logNotSendingEnc(oppId,providerId,providerNameEnc){
-  _nsOppId=oppId;
-  _nsProviderId=providerId;
-  _nsProviderName=decodeURIComponent(providerNameEnc);
-  document.getElementById('ns-provider-name').textContent=_nsProviderName;
-  document.getElementById('ns-reason').value='';
-  openModal('modal-not-sending');
-}
-async function confirmNotSending(){
-  var reason=document.getElementById('ns-reason').value.trim();
-  var {error}=await db.from('send_log').insert({
-    opportunity_id:_nsOppId,provider_id:_nsProviderId,
-    sent_at:new Date().toISOString(),
-    response:'Not sending',outcome:'N/A',
-    notes:reason||'Decision made not to send'
-  });
-  if(error){alert('Error: '+error.message);return;}
-  closeModal('modal-not-sending');
-  toast('Logged — not sending to '+_nsProviderName);
-  loadOpportunities();
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      document.getElementById('install-banner').classList.remove('show');
+    }
+    deferredPrompt = null;
+  }
+});
+
+function dismissInstall() {
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('install_dismissed', '1');
 }
 
-// INIT
-document.getElementById('n-date').value=new Date().toISOString().split('T')[0];
-loadDashboard();
+// ---- SERVICE WORKER ----
+if ('serviceWorker' in navigator) {
+  var swCode = `
+    const CACHE = 'be-review-v1';
+    self.addEventListener('install', e => { self.skipWaiting(); });
+    self.addEventListener('activate', e => { self.clients.claim(); });
+    self.addEventListener('fetch', e => {
+      e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    });
+  `;
+  var swBlob = new Blob([swCode], {type: 'application/javascript'});
+  var swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// ---- URL PARAM ----
+const urlParams = new URLSearchParams(window.location.search);
+const reviewParam = urlParams.get('review');
+if (reviewParam) {
+  const review = getReview(reviewParam.toUpperCase());
+  if (review) {
+    loadClientReview(reviewParam.toUpperCase());
+  } else {
+    showClientLogin();
+    document.getElementById('client-code').value = reviewParam.toUpperCase();
+  }
+}
+
+// ---- INIT ----
+applyLayout();
 </script>
 </body>
 </html>
